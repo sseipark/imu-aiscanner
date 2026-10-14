@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI스캐너 통합 관리자</title>
+    <!-- Pretendard 폰트 -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v3.2.1/dist/web/static/pretendard.css" />
+    <!-- Chart.js (차트 라이브러리) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root {
+            --bg-color: #f8fafc; --header-bg: #ffffff; --card-bg: #ffffff;
+            --border-color: #e2e8f0; --text-main: #1e293b; --text-sub: #64748b;
+            --blue: #3b82f6; --green: #10b981; --purple: #8b5cf6; --red: #ef4444;
+        }
+
+        body { margin: 0; background-color: var(--bg-color); font-family: 'Pretendard', sans-serif; color: var(--text-main); }
+        .header { background-color: var(--header-bg); display: flex; justify-content: space-between; align-items: center; padding: 16px 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-bottom: 1px solid var(--border-color); }
+        .header-title { font-size: 22px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px; }
+        .header-actions { display: flex; gap: 10px; align-items: center; }
+        
+        .btn { padding: 9px 16px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+        .btn-refresh { background-color: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; }
+        .btn-refresh:hover { background-color: #dbeafe; }
+
+        .container { padding: 24px 32px; max-width: 1600px; margin: 0 auto; }
+        
+        /* 탭 UI */
+        .tabs { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 2px solid var(--border-color); }
+        .tab { padding: 12px 24px; font-size: 16px; font-weight: 600; color: var(--text-sub); cursor: pointer; border-radius: 8px 8px 0 0; transition: all 0.2s; margin-bottom: -2px; }
+        .tab:hover { background-color: #f8fafc; }
+        .tab.active { color: #2563eb; border-bottom: 3px solid #2563eb; background-color: transparent; }
+
+        .view-section { display: none; }
+        .view-section.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* KPI 카드 */
+        .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+        .kpi-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+        .kpi-title { font-size: 13px; color: var(--text-sub); margin-bottom: 8px; font-weight: 600; }
+        .kpi-value { font-size: 24px; font-weight: 700; color: var(--text-main); }
+
+        .chart-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 24px; }
+        .content-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); margin-bottom: 24px; }
+        .content-card h3 { margin-top: 0; font-size: 16px; color: var(--text-main); margin-bottom: 15px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .canvas-container { position: relative; height: 300px; width: 100%; display: flex; justify-content: center; align-items: center; }
+
+        /* 테이블 */
+        .table-container { overflow: auto; max-height: 600px; border: 1px solid var(--border-color); border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td { padding: 12px 16px; font-size: 13px; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
+        th { background-color: #f8fafc; color: var(--text-sub); font-weight: 600; position: sticky; top: 0; z-index: 1; }
+        tr:hover { background-color: #f1f5f9; }
+        
+        .text-right { text-align: right; }
+        .badge-done { background-color: #d1fae5; color: #065f46; padding: 4px 8px; border-radius: 4px; font-weight: 600; font-size: 12px; }
+        
+        /* 로딩 스피너 */
+        .loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.85); display:flex; justify-content:center; align-items:center; flex-direction:column; z-index:999; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div id="loading" class="loading-overlay">
+        <div class="spinner"></div>
+        <div style="margin-top:15px; font-weight:600; color:#475569;">구글 시트 데이터 실시간 로드 중...</div>
+    </div>
+
+    <header class="header">
+        <div class="header-title">📊 AI스캐너 실시간 관리 대시보드</div>
+        <div class="header-actions">
+            <button class="btn btn-refresh" onclick="loadAllData()">🔄 구글시트 데이터 새로고침</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 탭 메뉴 -->
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('dashboard')">📈 전체 현황 대시보드</div>
+            <div class="tab" onclick="switchTab('payment')">💳 수납(입금) 관리</div>
+            <div class="tab" onclick="switchTab('cms')">🏪 가맹점 CMS 매칭 DB</div>
+        </div>
+
+        <!-- 1. 대시보드 뷰 -->
+        <div id="view-dashboard" class="view-section active">
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-title">청구 운영 매장 수</div>
+                    <div class="kpi-value" id="kpi-stores">0 <span style="font-size:14px; color:#94a3b8;">곳</span></div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">청구 스캐너 총 수량</div>
+                    <div class="kpi-value" style="color: var(--blue);" id="kpi-devices">0 <span style="font-size:14px; color:#94a3b8;">대</span></div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">월 청구비용 합계</div>
+                    <div class="kpi-value" style="color: var(--green);" id="kpi-billing">0 <span style="font-size:14px; color:#94a3b8;">원</span></div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">등록 대리점 수</div>
+                    <div class="kpi-value" style="color: var(--purple);" id="kpi-agencies">0 <span style="font-size:14px; color:#94a3b8;">곳</span></div>
+                </div>
+            </div>
+
+            <div class="chart-grid">
+                <div class="content-card">
+                    <h3>🏆 상위 대리점별 청구 현황</h3>
+                    <div class="canvas-container"><canvas id="barChart"></canvas></div>
+                </div>
+                <div class="content-card">
+                    <h3>🗺️ 지역별 매장 분포</h3>
+                    <div class="canvas-container"><canvas id="pieChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. 수납 관리 뷰 -->
+        <div id="view-payment" class="view-section">
+            <div class="kpi-grid" style="grid-template-columns: repeat(3, 1fr);">
+                <div class="kpi-card">
+                    <div class="kpi-title">총 수납 건수</div>
+                    <div class="kpi-value" id="kpi-pay-count" style="color: var(--blue);">0 <span style="font-size:14px; color:#94a3b8;">건</span></div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">총 수납 금액 (VAT 포함)</div>
+                    <div class="kpi-value" id="kpi-pay-amount" style="color: var(--green);">0 <span style="font-size:14px; color:#94a3b8;">원</span></div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">총 공급가액 (VAT 제외)</div>
+                    <div class="kpi-value" id="kpi-supply-amount" style="color: var(--purple);">0 <span style="font-size:14px; color:#94a3b8;">원</span></div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h3>📑 수납 결제 내역 리스트 (구글 시트 연동)</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>회원번호</th>
+                                <th>가맹점명</th>
+                                <th>청구월</th>
+                                <th>결제상태</th>
+                                <th>결제일</th>
+                                <th>정산일</th>
+                                <th class="text-right">수납금액(VAT포함)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="payment-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. CMS 매칭 DB 뷰 -->
+        <div id="view-cms" class="view-section">
+            <div class="content-card">
+                <h3>📑 가맹점-회원번호 매칭 정보 리스트 (CMS 시트)</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>회원번호</th>
+                                <th>엑셀 가맹점명</th>
+                                <th>CMS 회원명</th>
+                                <th>세금계산서 사업자번호</th>
+                                <th>가맹점 사업자번호</th>
+                                <th>대리점</th>
+                                <th>영업담당자</th>
+                                <th>비고</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cms-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 🚨 본인의 구글 시트 ID를 입력하세요 🚨
+        const GOOGLE_SHEET_ID = "여기에_구글시트_ID_입력";
+
+        let barChartInstance = null;
+        let pieChartInstance = null;
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            
+            if(tabName === 'dashboard') {
+                document.querySelectorAll('.tab')[0].classList.add('active');
+                document.getElementById('view-dashboard').classList.add('active');
+            } else if(tabName === 'payment') {
+                document.querySelectorAll('.tab')[1].classList.add('active');
+                document.getElementById('view-payment').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab')[2].classList.add('active');
+                document.getElementById('view-cms').classList.add('active');
+            }
+        }
+
+        function parseCSV(text) {
+            return text.split('\n').map(line => {
+                let row = [], inside = false, entry = '';
+                for (let c of line) {
+                    if (c === '"') inside = !inside;
+                    else if (c === ',' && !inside) { row.push(entry.trim()); entry = ''; }
+                    else entry += c;
+                }
+                row.push(entry.trim());
+                return row;
+            });
+        }
+
+        async function loadAllData() {
+            document.getElementById('loading').style.display = 'flex';
+            try {
+                // 1. CMS 시트 불러오기
+                const resCMS = await fetch(`https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=CMS`);
+                const textCMS = await resCMS.text();
+                renderCMS(parseCSV(textCMS));
+
+                // 2. 수납내역 시트 불러오기
+                const resPay = await fetch(`https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=수납내역`);
+                const textPay = await resPay.text();
+                renderPayment(parseCSV(textPay));
+
+            } catch (err) {
+                console.error("데이터 로드 실패:", err);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function renderCMS(rows) {
+            if (rows.length <= 1) return;
+            let tbody = "", activeStores = 0, totalDevices = 0, totalBilling = 0;
+            let agencyStats = {}, regionMap = {};
+
+            for (let i = 1; i < rows.length; i++) {
+                let r = rows[i];
+                let no = (r[1] || "").replace(/"/g, "");
+                let nameEx = (r[2] || "").replace(/"/g, "");
+                let nameCms = (r[3] || "").replace(/"/g, "");
+                let bizTax = (r[4] || "").replace(/"/g, "");
+                let bizStore = (r[5] || "").replace(/"/g, "");
+                let agency = (r[6] || "").replace(/"/g, "");
+                let manager = (r[8] || "").replace(/"/g, "");
+                let memo = (r[9] || "").replace(/"/g, "");
+
+                if (!no && !nameCms) continue;
+                activeStores++;
+
+                if (agency) {
+                    agencyStats[agency] = (agencyStats[agency] || 0) + 1;
+                }
+
+                tbody += `<tr>
+                    <td>${no}</td><td>${nameEx}</td><td style="font-weight:600;">${nameCms}</td>
+                    <td>${bizTax}</td><td>${bizStore}</td><td>${agency}</td><td>${manager}</td>
+                    <td style="color:#ef4444;">${memo}</td>
+                </tr>`;
+            }
+
+            document.getElementById('cms-table-body').innerHTML = tbody;
+            document.getElementById('kpi-stores').innerText = activeStores.toLocaleString() + " 곳";
+            document.getElementById('kpi-agencies').innerText = Object.keys(agencyStats).length + " 곳";
+
+            drawCharts(agencyStats);
+        }
+
+        function renderPayment(rows) {
+            if (rows.length <= 1) return;
+            let tbody = "", count = 0, totalPay = 0;
+
+            for (let i = 1; i < rows.length; i++) {
+                let r = rows[i];
+                let no = (r[0] || "").replace(/"/g, "");
+                let name = (r[1] || "").replace(/"/g, "");
+                let month = (r[2] || "").replace(/"/g, "");
+                let status = (r[3] || "").replace(/"/g, "");
+                let settleDate = (r[4] || "").replace(/"/g, "");
+                let payDate = (r[5] || "").replace(/"/g, "");
+                let payAmt = parseInt((r[6] || "0").replace(/[^0-9]/g, "")) || 0;
+
+                if (!no && !name) continue;
+                count++; totalPay +=
