@@ -6,7 +6,7 @@
     <title>AI스캐너 통합 관리자 대시보드</title>
     <!-- Pretendard 폰트 -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v3.2.1/dist/web/static/pretendard.css" />
-    <!-- SheetJS (엑셀 읽기/다운로드) -->
+    <!-- SheetJS (엑셀 파싱/다운로드) -->
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <!-- Chart.js (차트 시각화) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -72,22 +72,21 @@
 </head>
 <body>
 
-    <div id="loading" class="loading-overlay">
+    <div id="loading" class="loading-overlay" style="display:none;">
         <div class="spinner"></div>
-        <div id="loading-text" style="margin-top:15px; font-weight:600; color:#475569;">구글 시트 데이터 로드 중...</div>
+        <div id="loading-text" style="margin-top:15px; font-weight:600; color:#475569;">데이터 처리 중...</div>
     </div>
 
     <header class="header">
         <div class="header-title">📊 AI스캐너 실시간 통합 관리자</div>
         <div class="header-actions">
             <input type="file" id="fileInput" accept=".xlsx, .xls" />
-            <button class="btn btn-excel" onclick="document.getElementById('fileInput').click()">↑ 수납 엑셀 업로드 (구글 시트 DB 저장)</button>
-            <button class="btn btn-refresh" onclick="loadAllData()">🔄 실시간 동기화</button>
+            <button class="btn btn-excel" onclick="document.getElementById('fileInput').click()">↑ 엑셀 파일 업로드 (정산/수납 자동감지)</button>
+            <button class="btn btn-refresh" onclick="loadGoogleSheetData()">🔄 구글 시트 동기화</button>
         </div>
     </header>
 
     <div class="container">
-        <!-- 탭 메뉴 -->
         <div class="tabs">
             <div class="tab active" onclick="switchTab('dashboard')">📈 전체 현황 대시보드</div>
             <div class="tab" onclick="switchTab('payment')">💳 수납(입금) 관리</div>
@@ -164,7 +163,7 @@
             </div>
 
             <div class="content-card">
-                <h3>📑 수납 결제 내역 (구글 시트 실시간 연동 DB)</h3>
+                <h3>📑 수납 결제 내역 (구글 시트 연동 DB)</h3>
                 <div class="table-container">
                     <table>
                         <thead>
@@ -209,11 +208,11 @@
             </div>
         </div>
 
-        <!-- 4. 상세 데이터 전체 뷰 (엑셀 다운로드) -->
+        <!-- 4. 상세 데이터 전체 뷰 -->
         <div id="view-data" class="view-section">
             <div class="content-card">
                 <h3>
-                    📑 상세 데이터 전체 리스트
+                    📑 업로드 정산 상세 데이터 리스트
                     <button class="btn btn-outline" style="font-size: 12px; padding: 4px 10px;" onclick="downloadExcel()">↓ 엑셀 다운로드</button>
                 </h3>
                 <div class="table-container">
@@ -230,7 +229,7 @@
         // 🚨 본인의 구글 시트 ID를 여기에 입력하세요 🚨
         const GOOGLE_SHEET_ID = "YOUR_GOOGLE_SHEET_ID_HERE";
         
-        // 구글 앱스 스크립트 웹앱 URL
+        // 구글 앱스 스크립트 URL
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwaGkTHu1irC_C46B9PgA6bOLe_MSGaxA5wr27wf4_zhwMoz3SqtjfKzpU-G1IQeZTs/exec";
 
         let barChartInstance = null;
@@ -274,212 +273,48 @@
             });
         }
 
-        async function loadAllData() {
-            showLoading("구글 시트에서 최신 데이터를 불러오는 중...");
+        // 지역 분류 함수
+        function groupRegion(rStr) {
+            if (!rStr) return "기타";
+            let r = String(rStr).trim();
+            if (r.includes("서울")) return "서울"; if (r.includes("인천")) return "인천"; if (r.includes("경기")) return "경기도";
+            if (r.includes("충남") || r.includes("충북") || r.includes("대전") || r.includes("세종")) return "충청도";
+            if (r.includes("경남") || r.includes("경북") || r.includes("부산") || r.includes("대구") || r.includes("울산")) return "경상도";
+            if (r.includes("전남") || r.includes("전북") || r.includes("광주")) return "전라도";
+            if (r.includes("강원")) return "강원도"; if (r.includes("제주")) return "제주도";
+            return "기타";
+        }
+
+        // 구글 시트 데이터 로드
+        async function loadGoogleSheetData() {
+            if (!GOOGLE_SHEET_ID || GOOGLE_SHEET_ID.includes("YOUR_GOOGLE_SHEET_ID")) return;
+            showLoading("구글 시트에서 최신 데이터를 동기화하는 중...");
             try {
-                // CMS 불러오기
+                // CMS 로드
                 const resCMS = await fetch(`https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=CMS`);
                 const textCMS = await resCMS.text();
-                const dataCMS = parseCSV(textCMS);
-                renderCMS(dataCMS);
-                renderDataTable(dataCMS);
+                renderCMS(parseCSV(textCMS));
 
-                // 수납내역 불러오기
+                // 수납내역 로드
                 const resPay = await fetch(`https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=수납내역`);
                 const textPay = await resPay.text();
                 renderPayment(parseCSV(textPay));
 
             } catch (err) {
-                console.error("데이터 로드 실패:", err);
+                console.error("동기화 오류:", err);
             } finally {
                 hideLoading();
             }
         }
 
-        function renderCMS(rows) {
-            if (rows.length <= 1) return;
-            let tbody = "", activeStores = 0;
-            let agencyStats = {};
-
-            for (let i = 1; i < rows.length; i++) {
-                let r = rows[i];
-                let no = (r[1] || "").replace(/"/g, "");
-                let nameEx = (r[2] || "").replace(/"/g, "");
-                let nameCms = (r[3] || "").replace(/"/g, "");
-                let bizTax = (r[4] || "").replace(/"/g, "");
-                let bizStore = (r[5] || "").replace(/"/g, "");
-                let agency = (r[6] || "").replace(/"/g, "");
-                let manager = (r[8] || "").replace(/"/g, "");
-                let memo = (r[9] || "").replace(/"/g, "");
-
-                if (!no && !nameCms) continue;
-                activeStores++;
-
-                if (agency) {
-                    if (!agencyStats[agency]) agencyStats[agency] = { stores: 0, qty: 0, billing: 0 };
-                    agencyStats[agency].stores += 1;
-                    agencyStats[agency].qty += 1;
-                    agencyStats[agency].billing += 95000;
-                }
-
-                tbody += `<tr>
-                    <td>${no}</td><td>${nameEx}</td><td style="font-weight:600;">${nameCms}</td>
-                    <td>${bizTax}</td><td>${bizStore}</td><td>${agency}</td><td>${manager}</td>
-                    <td style="color:#ef4444;">${memo}</td>
-                </tr>`;
-            }
-
-            document.getElementById('cms-table-body').innerHTML = tbody;
-            document.getElementById('kpi-stores').innerText = activeStores.toLocaleString() + " 곳";
-            document.getElementById('kpi-devices').innerText = activeStores.toLocaleString() + " 대";
-            document.getElementById('kpi-billing').innerText = (activeStores * 95000).toLocaleString() + " 원";
-            document.getElementById('kpi-agencies').innerText = Object.keys(agencyStats).length + " 곳";
-
-            renderAgencySummary(agencyStats);
-            drawCharts(agencyStats);
-        }
-
-        function renderAgencySummary(agencyStats) {
-            let tbody = "";
-            let sorted = Object.entries(agencyStats).sort((a,b) => b[1].stores - a[1].stores);
-
-            for (let [ag, stat] of sorted) {
-                tbody += `<tr>
-                    <td style="font-weight:600;">${ag}</td>
-                    <td class="text-right">${stat.stores.toLocaleString()} 곳</td>
-                    <td class="text-right">${stat.qty.toLocaleString()} 대</td>
-                    <td class="text-right">${stat.billing.toLocaleString()} 원</td>
-                    <td class="text-right" style="color:var(--blue); font-weight:700;">${(stat.stores * 25000).toLocaleString()} 원</td>
-                </tr>`;
-            }
-            document.getElementById('agency-summary-body').innerHTML = tbody;
-        }
-
-        function renderPayment(rows) {
-            if (rows.length <= 1) return;
-            let tbody = "", count = 0, totalPay = 0, totalSupply = 0;
-
-            for (let i = 1; i < rows.length; i++) {
-                let r = rows[i];
-                let no = (r[0] || "").replace(/"/g, "");
-                let name = (r[1] || "").replace(/"/g, "");
-                let month = (r[2] || "").replace(/"/g, "");
-                let status = (r[3] || "").replace(/"/g, "");
-                let payDate = (r[4] || "").replace(/"/g, "");
-                let settleDate = (r[5] || "").replace(/"/g, "");
-                let sup = parseInt((r[6] || "0").replace(/[^0-9]/g, "")) || 0;
-                let pay = parseInt((r[7] || "0").replace(/[^0-9]/g, "")) || 0;
-
-                if (!no && !name) continue;
-                count++; totalPay += pay; totalSupply += sup;
-
-                tbody += `<tr>
-                    <td>${no}</td><td style="font-weight:600;">${name}</td><td>${month}</td>
-                    <td><span class="badge-done">${status || "결제완료"}</span></td>
-                    <td>${payDate}</td><td>${settleDate}</td>
-                    <td class="text-right">${sup.toLocaleString()} 원</td>
-                    <td class="text-right" style="font-weight:700; color:var(--green);">${pay.toLocaleString()} 원</td>
-                </tr>`;
-            }
-
-            document.getElementById('payment-table-body').innerHTML = tbody;
-            document.getElementById('kpi-pay-count').innerText = count.toLocaleString() + " 건";
-            document.getElementById('kpi-pay-amount').innerText = totalPay.toLocaleString() + " 원";
-            document.getElementById('kpi-supply-amount').innerText = totalSupply.toLocaleString() + " 원";
-        }
-
-        function renderDataTable(rows) {
-            if (rows.length === 0) return;
-            let head = "<tr>" + rows[0].map(h => `<th>${h.replace(/"/g, "")}</th>`).join("") + "</tr>";
-            let body = "";
-
-            for(let i=1; i<rows.length; i++) {
-                body += "<tr>" + rows[i].map(c => `<td>${(c || "").replace(/"/g, "")}</td>`).join("") + "</tr>";
-            }
-            document.getElementById('data-table-head').innerHTML = head;
-            document.getElementById('data-table-body').innerHTML = body;
-        }
-
-        function drawCharts(agencyStats) {
-            let sorted = Object.entries(agencyStats).sort((a,b) => b[1].stores - a[1].stores).slice(0, 10);
-            
-            if(barChartInstance) barChartInstance.destroy();
-            barChartInstance = new Chart(document.getElementById('barChart').getContext('2d'), {
-                type: 'bar',
-                data: { labels: sorted.map(x => x[0]), datasets: [{ data: sorted.map(x => x[1].stores), backgroundColor: '#8FAADC', borderRadius: 4 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-            });
-
-            if(pieChartInstance) pieChartInstance.destroy();
-            pieChartInstance = new Chart(document.getElementById('pieChart').getContext('2d'), {
-                type: 'doughnut',
-                data: { labels: ['수행완료', '대기중'], datasets: [{ data: [80, 20], backgroundColor: ['#A9D18E', '#FFB7B2'] }] },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-        }
-
-        function downloadExcel() {
-            var table = document.getElementById("dataTable");
-            if (table.rows.length <= 1) return;
-            var wb = XLSX.utils.table_to_book(table, {sheet: "상세데이터"});
-            XLSX.writeFile(wb, "AI스캐너_전체데이터.xlsx");
-        }
-
-        // 수납 엑셀 업로드 시 구글 시트 DB 자동 저장
+        // 엑셀 스마트 분기 처리
         document.getElementById('fileInput').addEventListener('change', function(e) {
             let file = e.target.files[0];
             if (!file) return;
 
             let reader = new FileReader();
             reader.onload = async function(e) {
-                showLoading("수납 엑셀 데이터를 구글 시트 DB로 업로드 중입니다...");
+                showLoading("엑셀 데이터를 분석 중입니다...");
                 try {
                     let data = new Uint8Array(e.target.result);
                     let workbook = XLSX.read(data, {type: 'array'});
-                    let rawData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1, defval: ""});
-                    
-                    let headers = rawData[0];
-                    let idxNo = headers.indexOf("회원번호"), idxName = headers.indexOf("회원명"), idxMonth = headers.indexOf("청구월");
-                    let idxStatus = headers.indexOf("결제상태"), idxSettle = headers.indexOf("정산일"), idxPayDate = headers.indexOf("결제일");
-                    let idxAmt = headers.indexOf("수납금액"), idxStore = 8, idxSupply = 9;
-
-                    let payloadData = [];
-                    for (let r = 1; r < rawData.length; r++) {
-                        let row = rawData[r];
-                        if (!row[idxNo] && !row[idxName]) continue;
-                        
-                        payloadData.push({
-                            no: row[idxNo] || "",
-                            name: row[idxStore] || row[idxName] || "",
-                            month: row[idxMonth] || "",
-                            status: row[idxStatus] || "결제완료",
-                            payDate: row[idxPayDate] || "",
-                            settleDate: row[idxSettle] || "",
-                            supplyAmount: parseFloat(row[idxSupply]) || 0,
-                            payAmount: parseInt(row[idxAmt]) || 0
-                        });
-                    }
-
-                    await fetch(APPS_SCRIPT_URL, {
-                        method: "POST",
-                        mode: "no-cors",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(payloadData)
-                    });
-
-                    alert("🎉 구글 시트 DB로 수납 데이터 저장이 완료되었습니다!");
-                    setTimeout(() => loadAllData(), 1500);
-
-                } catch (err) {
-                    alert("업로드 중 오류가 발생했습니다: " + err);
-                    hideLoading();
-                }
-            };
-            reader.readAsArrayBuffer(file);
-            e.target.value = '';
-        });
-
-        window.onload = function() { loadAllData(); };
-    </script>
-</body>
-</html>
