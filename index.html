@@ -117,7 +117,7 @@
         /* 모달 팝업 */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-card { background: white; border-radius: 8px; width: 560px; max-width: 90%; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-        .modal-card-large { width: 1050px; max-width: 98%; max-height: 90vh; overflow-y: auto; }
+        .modal-card-large { width: 1050px; max-width: 98%; max-height: 92vh; overflow-y: auto; }
         .modal-header { font-size: 16px; font-weight: 700; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
         .form-group { margin-bottom: 12px; }
         .form-group label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px; }
@@ -127,12 +127,20 @@
         .history-item { font-size: 12px; padding: 6px; border-bottom: 1px dashed #cbd5e1; display: flex; justify-content: space-between; align-items: center; }
         .history-item:last-child { border-bottom: none; }
 
-        .year-selector { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 16px; font-size: 18px; font-weight: 800; color: #0f172a; }
+        .year-selector { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 14px; font-size: 18px; font-weight: 800; color: #0f172a; }
         .year-btn { cursor: pointer; padding: 4px 12px; border-radius: 4px; border: 1px solid #cbd5e1; background: #ffffff; font-size: 13px; font-weight: 600; }
         .year-btn:hover { background: #f1f5f9; }
 
+        /* 상단 요약 정보 카드 스타일 */
+        .modal-user-card { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px 18px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .modal-user-info { display: flex; gap: 24px; font-size: 14px; font-weight: 700; color: #1e3a8a; }
+
         .payment-modal-table input { border: 1px solid #cbd5e1; border-radius: 4px; padding: 4px 6px; font-size: 12px; width: 100%; text-align: right; }
         .payment-modal-table input[type="date"] { text-align: center; }
+
+        /* 삭제 X 버튼 */
+        .btn-delete-x { background: transparent; border: none; color: #ef4444; font-size: 14px; font-weight: 800; cursor: pointer; padding: 2px 6px; border-radius: 4px; }
+        .btn-delete-x:hover { background: #fee2e2; }
 
         #fileInput { display: none; }
         #paymentFileInput { display: none; }
@@ -264,7 +272,7 @@
         </div>
     </div>
 
-    <!-- 4. 수금 관리 회원번호 클릭 상세 모달 -->
+    <!-- 4. 수금 관리 회원번호 클릭 상세 모달 (상단 회원정보 고정 + 하단 등록/비고 폼) -->
     <div id="paymentDetailModal" class="modal-overlay">
         <div class="modal-card modal-card-large">
             <div class="modal-header">
@@ -272,55 +280,97 @@
                 <span style="cursor:pointer;" onclick="closeModal('paymentDetailModal')">✕</span>
             </div>
             
-            <div class="year-selector">
-                <button class="year-btn" onclick="changePaymentYear(-1)">◀ 이전해</button>
-                <span id="p_modal_year_text">2026년</span>
-                <button class="year-btn" onclick="changePaymentYear(1)">다음해 ▶</button>
+            <input type="hidden" id="p_edit_no" />
+
+            <!-- 1. 상단 고객 요약 정보 카드 (회원번호, 회원명, 계약상태 상단 고정) -->
+            <div class="modal-user-card">
+                <div class="modal-user-info">
+                    <div><span>회원번호:</span> <strong id="m_card_no" style="color:#2563eb;">-</strong></div>
+                    <div><span>회원명:</span> <strong id="m_card_name">-</strong></div>
+                    <div><span>계약상태:</span> <span id="m_card_status" class="badge-status badge-use">사용</span></div>
+                </div>
+                <div class="year-selector" style="margin-bottom:0;">
+                    <button class="year-btn" onclick="changePaymentYear(-1)">◀ 이전해</button>
+                    <span id="p_modal_year_text">2026년</span>
+                    <button class="year-btn" onclick="changePaymentYear(1)">다음해 ▶</button>
+                </div>
             </div>
 
-            <input type="hidden" id="p_edit_no" />
-            
-            <div class="table-container payment-modal-table" style="max-height: 400px; margin-bottom: 16px;">
+            <!-- 2. 월별 수금/정산 테이블 -->
+            <div class="table-container payment-modal-table" style="max-height: 320px; margin-bottom: 16px;">
                 <table>
                     <thead>
                         <tr>
-                            <th>회원번호</th>
-                            <th>회원명</th>
-                            <th>계약상태</th>
-                            <th>월</th>
+                            <th class="text-center" style="width:90px;">월</th>
                             <th class="text-right">상품금액</th>
                             <th class="text-right">영업수수료</th>
-                            <th class="text-center" style="width:200px;">수납금액 (입금일/금액)</th>
-                            <th class="text-center" style="width:200px;">정산금액 (정산일/금액)</th>
+                            <th class="text-center" style="width:210px;">수납금액 (입금일 / 금액)</th>
+                            <th class="text-center" style="width:210px;">정산금액 (정산일 / 금액)</th>
                             <th class="text-right">미납금액</th>
+                            <th class="text-center" style="width:50px;">삭제</th>
                         </tr>
                     </thead>
                     <tbody id="payment-modal-tbody"></tbody>
                     <tfoot>
                         <tr style="background:#f1f5f9; font-weight:800;">
-                            <td colspan="4">합계</td>
+                            <td class="text-center">합계</td>
                             <td class="text-right" id="sum_product">0</td>
                             <td class="text-right" id="sum_commission">0</td>
                             <td class="text-right" id="sum_paid">0</td>
                             <td class="text-right" id="sum_settle">0</td>
                             <td class="text-right" id="sum_unpaid" style="color:#dc2626;">0</td>
+                            <td></td>
                         </tr>
                     </tfoot>
                 </table>
             </div>
 
-            <div style="border-top:2px solid #e2e8f0; padding-top:14px; margin-top:12px;">
-                <div style="font-weight:700; font-size:14px; margin-bottom:8px; color:#0f172a;">📝 비고 작성 및 관리</div>
-                <div style="display:grid; grid-template-columns: 180px 1fr auto; gap:10px; align-items:start;">
+            <!-- 3. 하단 신규 수납/정산 등록 폼 -->
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:14px; margin-bottom:14px;">
+                <div style="font-weight:700; font-size:13px; color:#0f172a; margin-bottom:8px;">➕ 수납 / 정산 내역 신규 등록</div>
+                <div style="display:grid; grid-template-columns: 120px 1fr 1fr 1fr 1fr auto; gap:8px; align-items:end;">
                     <div class="form-group" style="margin-bottom:0;">
-                        <label>비고 작성 날짜</label>
+                        <label>대상 월</label>
+                        <select id="p_new_month">
+                            <option value="01">1월</option><option value="02">2월</option><option value="03">3월</option>
+                            <option value="04">4월</option><option value="05">5월</option><option value="06">6월</option>
+                            <option value="07">7월</option><option value="08">8월</option><option value="09">9월</option>
+                            <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label>입금일자</label>
+                        <input type="date" id="p_new_paid_date">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label>수납금액(원)</label>
+                        <input type="number" id="p_new_paid_amt" placeholder="0">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label>정산일자</label>
+                        <input type="date" id="p_new_settle_date">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label>정산금액(원)</label>
+                        <input type="number" id="p_new_settle_amt" placeholder="0">
+                    </div>
+                    <button class="btn btn-primary" style="padding:8px 14px;" onclick="addQuickPaymentRow()">등록</button>
+                </div>
+            </div>
+
+            <!-- 4. 하단 비고 작성 및 관리 영역 -->
+            <div style="border-top:1px solid #e2e8f0; padding-top:12px;">
+                <div style="font-weight:700; font-size:13px; margin-bottom:8px; color:#0f172a;">📝 비고 작성 및 메모 관리</div>
+                <div style="display:grid; grid-template-columns: 160px 1fr auto; gap:10px; align-items:start;">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label>작성 일자</label>
                         <input type="date" id="p_memo_date">
                     </div>
                     <div class="form-group" style="margin-bottom:0;">
                         <label>비고 내용</label>
                         <input type="text" id="p_memo_text" placeholder="해당 회원에 대한 특이사항 및 메모를 입력하세요.">
                     </div>
-                    <button class="btn btn-primary" style="margin-top:20px; padding: 8px 16px;" onclick="savePaymentModalData()">저장하기</button>
+                    <button class="btn btn-outline" style="margin-top:20px; padding: 8px 16px;" onclick="savePaymentModalData()">전체 저장</button>
                 </div>
             </div>
         </div>
@@ -349,7 +399,7 @@
             </div>
 
             <div class="parent-menu open" onclick="toggleParent(this)">
-                <span>📂 AI스캐너</span><span class="arrow-icon">▼</span>
+                <span>AI스캐너</span><span class="arrow-icon">▼</span>
             </div>
             <div class="submenu open">
                 <div class="sub-item" onclick="switchCategory('viscovery', this, 'AI스캐너 > Viscovery 정산')">
@@ -466,10 +516,10 @@
                 </div>
             </div>
 
-            <!-- 3. [CMS > 수금관리] 뷰 (요청하신 대로 대리점, 가맹점, 영업대표 필터 추가) -->
+            <!-- 3. [CMS > 수금관리] 뷰 -->
             <div id="view-payment" class="view-section">
                 
-                <!-- 수금관리 전용 확장 필터 패널 -->
+                <!-- 수금관리 전용 필터 패널 -->
                 <div class="filter-panel" style="grid-template-columns: 1.1fr 1fr 1fr 1fr 1fr auto;">
                     <div class="filter-group">
                         <label>계약상태:</label>
@@ -692,7 +742,6 @@
             filterCustomerTable();
         }
 
-        // 수금관리 확장 필터링 (계약상태 + 대리점 + 가맹점 + 영업대표 + 미납금액)
         function filterPaymentTable() {
             let query = document.getElementById('searchInput').value.toLowerCase().trim();
             let selectedStatus = document.querySelector('input[name="payFilterStatus"]:checked').value;
@@ -733,7 +782,6 @@
             filterPaymentTable();
         }
 
-        // 고객관리 및 수금관리 필터 드롭다운 동적 갱신
         function updateSelectOptions() {
             let typeSelect = document.getElementById('filterTypeSelect');
             let currentType = typeSelect.value;
@@ -743,7 +791,6 @@
             typeSelect.innerHTML = typeHtml;
             typeSelect.value = types.includes(currentType) ? currentType : 'ALL';
 
-            // 대리점 옵션
             let agencySelect = document.getElementById('filterAgencySelect');
             let payAgencySelect = document.getElementById('payFilterAgencySelect');
             let currentAgency = agencySelect.value;
@@ -754,7 +801,6 @@
             payAgencySelect.innerHTML = agencyHtml;
             agencySelect.value = agencies.includes(currentAgency) ? currentAgency : 'ALL';
 
-            // 가맹점 옵션
             let storeSelect = document.getElementById('filterStoreSelect');
             let payStoreSelect = document.getElementById('payFilterStoreSelect');
             let currentStore = storeSelect.value;
@@ -765,7 +811,6 @@
             payStoreSelect.innerHTML = storeHtml;
             storeSelect.value = stores.includes(currentStore) ? currentStore : 'ALL';
 
-            // 영업대표 옵션
             let managerSelect = document.getElementById('filterManagerSelect');
             let payManagerSelect = document.getElementById('payFilterManagerSelect');
             let currentManager = managerSelect.value;
@@ -962,11 +1007,20 @@
             if (no) renderPaymentModalContent(no);
         }
 
+        // 수금 모달 열기 (상단에 회원번호, 회원명, 계약상태 표시)
         function openPaymentDetailModal(no) {
             let item = customerDataList.find(x => x.no === no);
             if (!item) return;
 
             document.getElementById('p_edit_no').value = item.no;
+            document.getElementById('m_card_no').innerText = item.no;
+            document.getElementById('m_card_name').innerText = item.name;
+            
+            let statusBadge = item.status === '사용' 
+                ? '<span class="badge-status badge-use">사용</span>' 
+                : '<span class="badge-status badge-stop">'+item.status+'</span>';
+            document.getElementById('m_card_status').innerHTML = statusBadge;
+
             document.getElementById('p_modal_year_text').innerText = `${currentModalYear}년`;
 
             renderPaymentModalContent(no);
@@ -998,15 +1052,7 @@
                 sumSettle += settleAmt;
                 sumUnpaid += unpaidAmt;
 
-                let isFirst = (m === 1);
-                let firstRowInfo = isFirst ? `
-                    <td rowspan="12" style="font-weight:700; background:#fff; text-align:center; color:#1e293b;">${item.no}</td>
-                    <td rowspan="12" style="font-weight:700; background:#fff; text-align:center;">${item.name}</td>
-                    <td rowspan="12" style="text-align:center; background:#fff;">${item.status}</td>
-                ` : '';
-
                 tbody += `<tr>
-                    ${firstRowInfo}
                     <td class="text-center" style="font-weight:600; background:#f8fafc;">${monthStr}</td>
                     <td class="text-right">${pAmt.toLocaleString()}</td>
                     <td class="text-right">${cAmt.toLocaleString()}</td>
@@ -1023,6 +1069,9 @@
                         </div>
                     </td>
                     <td class="text-right"><input type="number" value="${unpaidAmt}" id="up_${m}" style="color:${unpaidAmt > 0 ? '#dc2626' : '#1e293b'}; font-weight:700;" /></td>
+                    <td class="text-center">
+                        <button class="btn-delete-x" onclick="clearModalRow(${m})" title="해당 월 초기화">✕</button>
+                    </td>
                 </tr>`;
             }
 
@@ -1052,6 +1101,53 @@
             unpaidInput.style.color = unpaidVal > 0 ? '#dc2626' : '#1e293b';
         }
 
+        // 해당 월 행 내용 초기화 (✕ 버튼 클릭)
+        function clearModalRow(m) {
+            let no = document.getElementById('p_edit_no').value;
+            let monthStr = `${currentModalYear}-${String(m).padStart(2, '0')}`;
+            if (paymentDataMap[no] && paymentDataMap[no][monthStr]) {
+                delete paymentDataMap[no][monthStr];
+            }
+            renderPaymentModalContent(no);
+        }
+
+        // 하단 신규 등록 폼에서 즉시 등록
+        function addQuickPaymentRow() {
+            let no = document.getElementById('p_edit_no').value;
+            let month = document.getElementById('p_new_month').value;
+            let paidDate = document.getElementById('p_new_paid_date').value;
+            let paidAmt = parseInt(document.getElementById('p_new_paid_amt').value) || 0;
+            let settleDate = document.getElementById('p_new_settle_date').value;
+            let settleAmt = parseInt(document.getElementById('p_new_settle_amt').value) || 0;
+
+            if (!no) return;
+            if (!paymentDataMap[no]) paymentDataMap[no] = {};
+
+            let item = customerDataList.find(x => x.no === no);
+            let pAmt = item ? item.amount : 0;
+            let monthStr = `${currentModalYear}-${month}`;
+
+            paymentDataMap[no][monthStr] = {
+                amount: pAmt,
+                commission: item ? item.commission : 0,
+                paid: paidAmt,
+                paidDate: paidDate,
+                settle: settleAmt,
+                settleDate: settleDate,
+                unpaid: Math.max(0, pAmt - paidAmt)
+            };
+
+            // 입력 필드 초기화
+            document.getElementById('p_new_paid_date').value = '';
+            document.getElementById('p_new_paid_amt').value = '';
+            document.getElementById('p_new_settle_date').value = '';
+            document.getElementById('p_new_settle_amt').value = '';
+
+            renderPaymentModalContent(no);
+            renderPaymentTable();
+            alert(`${month}월 수납/정산 내역이 추가되었습니다.`);
+        }
+
         function savePaymentModalData() {
             let no = document.getElementById('p_edit_no').value;
             if (!no) return;
@@ -1068,15 +1164,17 @@
                 let settleVal = parseInt(document.getElementById(`sa_${m}`).value) || 0;
                 let unpaidVal = parseInt(document.getElementById(`up_${m}`).value) || 0;
 
-                paymentDataMap[no][monthStr] = {
-                    amount: item ? item.amount : 0,
-                    commission: item ? item.commission : 0,
-                    paid: paidVal,
-                    paidDate: paidDate,
-                    settle: settleVal,
-                    settleDate: settleDate,
-                    unpaid: unpaidVal
-                };
+                if (paidVal > 0 || settleVal > 0 || paidDate || settleDate) {
+                    paymentDataMap[no][monthStr] = {
+                        amount: item ? item.amount : 0,
+                        commission: item ? item.commission : 0,
+                        paid: paidVal,
+                        paidDate: paidDate,
+                        settle: settleVal,
+                        settleDate: settleDate,
+                        unpaid: unpaidVal
+                    };
+                }
             }
 
             let memoDate = document.getElementById('p_memo_date').value;
