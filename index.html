@@ -137,8 +137,8 @@
         .form-group label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px; }
         .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none; }
 
-        .history-list { max-height: 160px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; margin-bottom: 16px; background: #f8fafc; }
-        .history-item { font-size: 12px; padding: 6px; border-bottom: 1px dashed #cbd5e1; display: flex; justify-content: space-between; align-items: center; }
+        .history-list { max-height: 180px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; margin-bottom: 16px; background: #f8fafc; }
+        .history-item { font-size: 12px; padding: 8px; border-bottom: 1px dashed #cbd5e1; display: flex; justify-content: space-between; align-items: center; }
         .history-item:last-child { border-bottom: none; }
 
         .year-selector { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 14px; font-size: 18px; font-weight: 800; color: #0f172a; }
@@ -152,6 +152,8 @@
         .val-date { font-size: 11px; color: #64748b; font-weight: normal; }
         .btn-mini-x { background: transparent; border: none; color: #ef4444; font-size: 12px; font-weight: 800; cursor: pointer; padding: 0 4px; border-radius: 3px; }
         .btn-mini-x:hover { background: #fee2e2; }
+
+        .table-input-inline { padding: 4px 6px; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none; }
 
         #fileInput, #paymentFileInput, #billingFileInput { display: none; }
     </style>
@@ -171,14 +173,14 @@
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <div class="form-group">
                     <label>계약상태</label>
-                    <select id="m_status"><option value="사용">사용</option><option value="중지">중지</option><option value="해지">해지</option></select>
+                    <select id="m_status"><option value="사용">사용</option><option value="중지">중지</option></select>
                 </div>
                 <div class="form-group"><label>청구시작일</label><input type="date" id="m_start"></div>
             </div>
             <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
-                <div class="form-group"><label>청구금액(원)</label><input type="number" id="m_amount" placeholder="33000"></div>
+                <div class="form-group"><label>회원구분</label><input type="text" id="m_type" placeholder="예: AI스캐너" oninput="autoCalcCommission('m_type', 'm_amount', 'm_commission')"></div>
+                <div class="form-group"><label>상품금액(원)</label><input type="number" id="m_amount" placeholder="33000" oninput="autoCalcCommission('m_type', 'm_amount', 'm_commission')"></div>
                 <div class="form-group"><label>영업수수료(원)</label><input type="number" id="m_commission" placeholder="5000"></div>
-                <div class="form-group"><label>회원구분</label><input type="text" id="m_type" placeholder="예: ASP_서버이용료"></div>
             </div>
             <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
                 <div class="form-group"><label>대리점</label><input type="text" id="m_agency" placeholder="예: 메트로넷"></div>
@@ -208,14 +210,14 @@
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <div class="form-group">
                     <label>계약상태</label>
-                    <select id="edit_status"><option value="사용">사용</option><option value="중지">중지</option><option value="해지">해지</option></select>
+                    <select id="edit_status"><option value="사용">사용</option><option value="중지">중지</option></select>
                 </div>
                 <div class="form-group"><label>청구시작일</label><input type="text" id="edit_start" placeholder="YYYY-MM-DD"></div>
             </div>
             <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
-                <div class="form-group"><label>청구금액(원)</label><input type="number" id="edit_amount"></div>
+                <div class="form-group"><label>회원구분</label><input type="text" id="edit_type" oninput="autoCalcCommission('edit_type', 'edit_amount', 'edit_commission')"></div>
+                <div class="form-group"><label>상품금액(원)</label><input type="number" id="edit_amount" oninput="autoCalcCommission('edit_type', 'edit_amount', 'edit_commission')"></div>
                 <div class="form-group"><label>영업수수료(원)</label><input type="number" id="edit_commission"></div>
-                <div class="form-group"><label>회원구분</label><input type="text" id="edit_type"></div>
             </div>
             <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
                 <div class="form-group"><label>대리점</label><input type="text" id="edit_agency"></div>
@@ -232,7 +234,7 @@
         </div>
     </div>
 
-    <!-- 3. 계약이력 모달 -->
+    <!-- 3. 계약이력 팝업 모달 (구분 5종 확장: 사용, 중지, 계약변경, 상품금액변경, 영업수수료변경) -->
     <div id="contractHistoryModal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-header">
@@ -252,18 +254,18 @@
 
             <div style="border-top:1px dashed #cbd5e1; padding-top:12px; margin-top:12px;">
                 <div style="font-size:13px; font-weight:700; margin-bottom:8px; color:#0f172a;">새 계약 이력 추가</div>
-                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                     <div class="form-group">
                         <label>구분</label>
                         <select id="h_type">
                             <option value="사용">사용</option>
                             <option value="중지">중지</option>
-                            <option value="변경">변경</option>
-                            <option value="기타">기타</option>
+                            <option value="계약변경">계약변경</option>
+                            <option value="상품금액변경">상품금액변경</option>
+                            <option value="영업수수료변경">영업수수료변경</option>
                         </select>
                     </div>
-                    <div class="form-group"><label>시작일</label><input type="date" id="h_start"></div>
-                    <div class="form-group"><label>종료일</label><input type="date" id="h_end"></div>
+                    <div class="form-group"><label>계약 날짜</label><input type="date" id="h_date"></div>
                 </div>
                 <div class="form-group">
                     <label>관련 서류 첨부 (선택사항)</label>
@@ -282,7 +284,90 @@
         </div>
     </div>
 
-    <!-- 4. 수금 관리 회원번호 클릭 상세 모달 -->
+    <!-- 4. 서류 등록 전용 관리 모달 (신규 추가) -->
+    <div id="docModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <span>관련 서류 파일 관리</span>
+                <span style="cursor:pointer;" onclick="closeModal('docModal')">✕</span>
+            </div>
+            <input type="hidden" id="doc_cust_no" />
+            <div style="margin-bottom:12px; font-weight:700; color:#2563eb; font-size:14px;" id="doc_cust_info"></div>
+
+            <div class="form-group">
+                <label>등록된 서류 목록</label>
+                <div class="history-list" id="docListContainer">
+                    <div style="text-align:center; color:#94a3b8; padding:20px;">등록된 서류가 없습니다.</div>
+                </div>
+            </div>
+
+            <div style="border-top:1px dashed #cbd5e1; padding-top:12px; margin-top:12px;">
+                <div style="font-size:13px; font-weight:700; margin-bottom:8px; color:#0f172a;">새 서류 등록</div>
+                <div class="form-group">
+                    <label>서류 구분 / 이름</label>
+                    <input type="text" id="doc_name" placeholder="예: 사업자등록증, 계약서 파일 등">
+                </div>
+                <div class="form-group">
+                    <label>파일 첨부</label>
+                    <input type="file" id="doc_file_input" style="padding:4px;">
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
+                <button class="btn btn-outline" onclick="closeModal('docModal')">닫기</button>
+                <button class="btn btn-primary" onclick="saveDocRecord()">서류 저장</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. 상담 내역 전용 관리 모달 (신규 추가) -->
+    <div id="counselModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <span>고객 상담 내역 관리</span>
+                <span style="cursor:pointer;" onclick="closeModal('counselModal')">✕</span>
+            </div>
+            <input type="hidden" id="counsel_cust_no" />
+            <div style="margin-bottom:12px; font-weight:700; color:#2563eb; font-size:14px;" id="counsel_cust_info"></div>
+
+            <div class="form-group">
+                <label>등록된 상담 내역 목록</label>
+                <div class="history-list" id="counselListContainer">
+                    <div style="text-align:center; color:#94a3b8; padding:20px;">등록된 상담내역이 없습니다.</div>
+                </div>
+            </div>
+
+            <div style="border-top:1px dashed #cbd5e1; padding-top:12px; margin-top:12px;">
+                <div style="font-size:13px; font-weight:700; margin-bottom:8px; color:#0f172a;">새 상담 내역 등록</div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="form-group">
+                        <label>상담 날짜</label>
+                        <input type="date" id="counsel_date">
+                    </div>
+                    <div class="form-group">
+                        <label>상담 구분</label>
+                        <select id="counsel_type">
+                            <option value="전화상담">전화상담</option>
+                            <option value="방문상담">방문상담</option>
+                            <option value="이메일">이메일</option>
+                            <option value="기타">기타</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>상담 내용</label>
+                    <textarea id="counsel_text" rows="2" placeholder="상담한 세부 내용을 입력하세요."></textarea>
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
+                <button class="btn btn-outline" onclick="closeModal('counselModal')">닫기</button>
+                <button class="btn btn-primary" onclick="saveCounselRecord()">상담 기록 저장</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. 수금 관리 회원번호 클릭 상세 모달 -->
     <div id="paymentDetailModal" class="modal-overlay">
         <div class="modal-card modal-card-large">
             <div class="modal-header">
@@ -322,8 +407,8 @@
                     <tfoot>
                         <tr style="background:#f1f5f9; font-weight:800;">
                             <td class="text-center">합계</td>
-                            <td class="text-right" id="sum_product">0</td>
-                            <td class="text-right" id="sum_commission">0</td>
+                            <td class="text-right" id="sum_product">-</td>
+                            <td class="text-right" id="sum_commission">-</td>
                             <td class="text-right" id="sum_paid">0</td>
                             <td class="text-right" id="sum_settle">0</td>
                             <td class="text-right" id="sum_unpaid" style="color:#dc2626;">0</td>
@@ -388,7 +473,6 @@
         <div class="sidebar-menu">
             <div class="menu-category">MAIN MENU</div>
             
-            <!-- 첫번째 메뉴로 대시보드 배치 및 활성화 -->
             <div class="nav-item active" onclick="switchCategory('dashboard', this, '전체 현황 대시보드')">
                 대시보드
             </div>
@@ -400,11 +484,14 @@
                 <div class="sub-item" onclick="switchCategory('customer', this, 'CMS > 고객관리')">
                     고객관리
                 </div>
-                <div class="sub-item" onclick="switchCategory('billing', this, 'CMS > 청구관리')">
-                    청구관리
+                <div class="sub-item" onclick="switchCategory('historyManager', this, 'CMS > 계약이력관리')">
+                    계약이력관리
                 </div>
                 <div class="sub-item" onclick="switchCategory('payment', this, 'CMS > 수금관리')">
                     수금관리
+                </div>
+                <div class="sub-item" onclick="switchCategory('billing', this, 'CMS > 청구관리')">
+                    청구관리
                 </div>
             </div>
 
@@ -438,10 +525,8 @@
 
         <div class="container">
 
-            <!-- 1. [대시보드] 뷰 (첫 화면 노출 및 시각화 차트 배치) -->
+            <!-- 1. [대시보드] 뷰 -->
             <div id="view-dashboard" class="view-section active">
-                
-                <!-- KPI 수치 요약 위젯 -->
                 <div class="kpi-grid">
                     <div class="kpi-card"><div class="kpi-title">총 등록 고객 수</div><div class="kpi-value" id="kpi-stores">0 곳</div></div>
                     <div class="kpi-card"><div class="kpi-title">운영 중인 계약 수</div><div class="kpi-value" style="color:#2563eb;" id="kpi-devices">0 건</div></div>
@@ -449,7 +534,6 @@
                     <div class="kpi-card"><div class="kpi-title">미납 및 미정산 건수</div><div class="kpi-value" style="color:#ef4444;" id="kpi-agencies">0 건</div></div>
                 </div>
 
-                <!-- 시각화 차트 2컬럼 레이아웃 (계약상태 비율 + 월별 수금/정산 실적 추이) -->
                 <div class="dashboard-grid-2col">
                     <div class="content-card" style="margin-bottom:0;">
                         <h3>가맹점 계약상태 분포</h3>
@@ -465,7 +549,6 @@
                     </div>
                 </div>
 
-                <!-- 대리점별 고객 분포 가로 차트 -->
                 <div class="dashboard-grid-full">
                     <div class="content-card" style="margin-bottom:0;">
                         <h3>대리점별 고객 관리 현황</h3>
@@ -489,9 +572,6 @@
                         </div>
                         <div class="status-tab" onclick="selectStatusTab('customer', '중지', this)">
                             <span>중지</span><span class="status-tab-badge" id="c_tab_stop">0명</span>
-                        </div>
-                        <div class="status-tab" onclick="selectStatusTab('customer', '해지', this)">
-                            <span>해지</span><span class="status-tab-badge" id="c_tab_cancel">0명</span>
                         </div>
                     </div>
 
@@ -547,7 +627,7 @@
                                     <th class="sortable" onclick="sortTable('name', 'customer')">회원명 <span class="sort-indicator" id="csort_name"></span></th>
                                     <th class="sortable" onclick="sortTable('phone', 'customer')">납부자 휴대전화 <span class="sort-indicator" id="csort_phone"></span></th>
                                     <th class="sortable" onclick="sortTable('status', 'customer')">계약상태<br><span style="font-size:10px; font-weight:normal; color:#64748b;">(청구시작일)</span> <span class="sort-indicator" id="csort_status"></span></th>
-                                    <th class="text-right sortable" onclick="sortTable('amount', 'customer')">청구금액 <span class="sort-indicator" id="csort_amount"></span></th>
+                                    <th class="text-right sortable" onclick="sortTable('amount', 'customer')">상품금액 <span class="sort-indicator" id="csort_amount"></span></th>
                                     <th class="text-right sortable" onclick="sortTable('commission', 'customer')">영업수수료 <span class="sort-indicator" id="csort_commission"></span></th>
                                     <th class="sortable" onclick="sortTable('type', 'customer')">회원구분 <span class="sort-indicator" id="csort_type"></span></th>
                                     <th class="sortable" onclick="sortTable('agency', 'customer')">대리점 <span class="sort-indicator" id="csort_agency"></span></th>
@@ -564,31 +644,38 @@
                 </div>
             </div>
 
-            <!-- 3. [CMS > 청구관리] 뷰 -->
-            <div id="view-billing" class="view-section">
+            <!-- 3. [CMS > 계약이력관리] 뷰 -->
+            <div id="view-historyManager" class="view-section">
                 <div class="content-card">
                     <h3>
-                        <span>월별 청구 내역 관리</span>
+                        <span>전체 계약 이력 통합 관리</span>
                         <div class="card-actions">
-                            <button class="btn btn-excel" style="font-size: 12px; padding: 6px 12px;" onclick="document.getElementById('billingFileInput').click()">청구업로드</button>
+                            <select id="histFilterType" class="filter-select" style="width:160px;" onchange="renderHistoryManagerTable()">
+                                <option value="ALL">전체 계약구분</option>
+                                <option value="사용">사용</option>
+                                <option value="중지">중지</option>
+                                <option value="계약변경">계약변경</option>
+                                <option value="상품금액변경">상품금액변경</option>
+                                <option value="영업수수료변경">영업수수료변경</option>
+                            </select>
                         </div>
                     </h3>
                     <div class="table-container">
                         <table>
                             <thead>
                                 <tr>
-                                    <th class="text-center">NO.</th>
-                                    <th>회원번호</th>
-                                    <th>회원명</th>
-                                    <th>청구월</th>
-                                    <th class="text-right">청구금액</th>
-                                    <th>수납상태</th>
-                                    <th>상품</th>
-                                    <th>결제수단</th>
+                                    <th class="text-center" style="width:50px;">NO.</th>
+                                    <th style="width:120px;">회원번호</th>
+                                    <th style="width:180px;">회원명</th>
+                                    <th style="width:130px;">계약구분</th>
+                                    <th style="width:130px;">계약 날짜</th>
+                                    <th>계약 내용 및 메모</th>
+                                    <th style="width:140px;">관련서류</th>
+                                    <th class="text-center" style="width:130px;">관리 (수정/삭제)</th>
                                 </tr>
                             </thead>
-                            <tbody id="billing-table-body">
-                                <tr><td colspan="8" class="text-center" style="color:#94a3b8; padding:30px;">[청구업로드] 버튼을 통해 청구목록(청구별) 엑셀을 등록해주세요.</td></tr>
+                            <tbody id="history-manager-tbody">
+                                <tr><td colspan="8" class="text-center" style="color:#94a3b8; padding:30px;">등록된 계약 이력이 없습니다.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -608,9 +695,6 @@
                         </div>
                         <div class="status-tab" onclick="selectStatusTab('payment', '중지', this)">
                             <span>중지</span><span class="status-tab-badge" id="p_tab_stop">0명</span>
-                        </div>
-                        <div class="status-tab" onclick="selectStatusTab('payment', '해지', this)">
-                            <span>해지</span><span class="status-tab-badge" id="p_tab_cancel">0명</span>
                         </div>
                     </div>
 
@@ -688,7 +772,38 @@
                 </div>
             </div>
 
-            <!-- 5. [AI스캐너 > Viscovery 정산] 뷰 -->
+            <!-- 5. [CMS > 청구관리] 뷰 -->
+            <div id="view-billing" class="view-section">
+                <div class="content-card">
+                    <h3>
+                        <span>월별 청구 내역 관리</span>
+                        <div class="card-actions">
+                            <button class="btn btn-excel" style="font-size: 12px; padding: 6px 12px;" onclick="document.getElementById('billingFileInput').click()">청구업로드</button>
+                        </div>
+                    </h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="text-center">NO.</th>
+                                    <th>회원번호</th>
+                                    <th>회원명</th>
+                                    <th>청구월</th>
+                                    <th class="text-right">청구금액</th>
+                                    <th>수납상태</th>
+                                    <th>상품</th>
+                                    <th>결제수단</th>
+                                </tr>
+                            </thead>
+                            <tbody id="billing-table-body">
+                                <tr><td colspan="8" class="text-center" style="color:#94a3b8; padding:30px;">[청구업로드] 버튼을 통해 청구목록(청구별) 엑셀을 등록해주세요.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. [AI스캐너 > Viscovery 정산] 뷰 -->
             <div id="view-viscovery" class="view-section">
                 <div class="content-card">
                     <h3>Viscovery AI스캐너 정산 현황</h3>
@@ -703,7 +818,7 @@
                 </div>
             </div>
 
-            <!-- 6. [AI스캐너 > 영업수수료 정산] 뷰 -->
+            <!-- 7. [AI스캐너 > 영업수수료 정산] 뷰 -->
             <div id="view-commission" class="view-section">
                 <div class="content-card">
                     <h3>영업수수료 정산 요약</h3>
@@ -739,6 +854,8 @@
         let paymentDataMap = {}; 
         let contractHistoryMap = {}; 
         let billingDataList = [];
+        let docDataMap = {};       // 서류 데이터 맵
+        let counselDataMap = {};   // 상담내역 데이터 맵
 
         let currentModalYear = 2026;
         let currentSortKey = '';
@@ -756,17 +873,22 @@
             let savedPay = localStorage.getItem('cms_pay_map');
             let savedHist = localStorage.getItem('cms_hist_map');
             let savedBill = localStorage.getItem('cms_bill_list');
+            let savedDoc = localStorage.getItem('cms_doc_map');
+            let savedCounsel = localStorage.getItem('cms_counsel_map');
 
             if (savedCust) customerDataList = JSON.parse(savedCust);
             if (savedPay) paymentDataMap = JSON.parse(savedPay);
             if (savedHist) contractHistoryMap = JSON.parse(savedHist);
             if (savedBill) billingDataList = JSON.parse(savedBill);
+            if (savedDoc) docDataMap = JSON.parse(savedDoc);
+            if (savedCounsel) counselDataMap = JSON.parse(savedCounsel);
 
             updateSelectOptions();
             updateTabBadges();
             filterCustomerTable();
             filterPaymentTable();
             renderBillingTable();
+            renderHistoryManagerTable();
             updateKPIs();
             renderDashboardCharts();
 
@@ -778,6 +900,8 @@
                     paymentDataMap = data.payments || {};
                     contractHistoryMap = data.histories || {};
                     billingDataList = data.billings || [];
+                    docDataMap = data.docs || {};
+                    counselDataMap = data.counsels || {};
 
                     saveLocalStorage();
                     updateSelectOptions();
@@ -785,6 +909,7 @@
                     filterCustomerTable();
                     filterPaymentTable();
                     renderBillingTable();
+                    renderHistoryManagerTable();
                     updateKPIs();
                     renderDashboardCharts();
                 }
@@ -802,7 +927,9 @@
                 customers: customerDataList,
                 payments: paymentDataMap,
                 histories: contractHistoryMap,
-                billings: billingDataList
+                billings: billingDataList,
+                docs: docDataMap,
+                counsels: counselDataMap
             });
         }
 
@@ -811,23 +938,48 @@
             localStorage.setItem('cms_pay_map', JSON.stringify(paymentDataMap));
             localStorage.setItem('cms_hist_map', JSON.stringify(contractHistoryMap));
             localStorage.setItem('cms_bill_list', JSON.stringify(billingDataList));
+            localStorage.setItem('cms_doc_map', JSON.stringify(docDataMap));
+            localStorage.setItem('cms_counsel_map', JSON.stringify(counselDataMap));
+        }
+
+        // AI스캐너 수수료 자동 매칭 계산 함수
+        function autoCalcCommission(typeElemId, amountElemId, commissionElemId) {
+            let typeVal = document.getElementById(typeElemId).value.trim();
+            let amtVal = parseInt(document.getElementById(amountElemId).value) || 0;
+
+            if (typeVal === 'AI스캐너') {
+                let commMap = {
+                    66000: 0,
+                    104500: 0,
+                    132000: 27500,
+                    165000: 44000,
+                    264000: 55000,
+                    286000: 77000
+                };
+                if (commMap[amtVal] !== undefined) {
+                    document.getElementById(commissionElemId).value = commMap[amtVal];
+                }
+            }
+        }
+
+        function getBillingAmountForMonth(no, yearMonthStr) {
+            if (!billingDataList || billingDataList.length === 0) return null;
+            let match = billingDataList.find(b => b.no === no && b.month === yearMonthStr);
+            return match ? match.amount : null;
         }
 
         function updateTabBadges() {
             let total = customerDataList.length;
             let useCount = customerDataList.filter(x => x.status === '사용').length;
             let stopCount = customerDataList.filter(x => x.status === '중지').length;
-            let cancelCount = customerDataList.filter(x => x.status === '해지').length;
 
             document.getElementById('c_tab_all').innerText = total + '명';
             document.getElementById('c_tab_use').innerText = useCount + '명';
             document.getElementById('c_tab_stop').innerText = stopCount + '명';
-            document.getElementById('c_tab_cancel').innerText = cancelCount + '명';
 
             document.getElementById('p_tab_all').innerText = total + '명';
             document.getElementById('p_tab_use').innerText = useCount + '명';
             document.getElementById('p_tab_stop').innerText = stopCount + '명';
-            document.getElementById('p_tab_cancel').innerText = cancelCount + '명';
         }
 
         function selectStatusTab(type, status, el) {
@@ -859,6 +1011,7 @@
             document.getElementById('page-title').innerText = titleText;
 
             if (category === 'dashboard') renderDashboardCharts();
+            if (category === 'historyManager') renderHistoryManagerTable();
             if (category === 'payment') renderPaymentTable();
             if (category === 'billing') renderBillingTable();
         }
@@ -869,14 +1022,12 @@
         function onGlobalSearch() {
             filterCustomerTable();
             filterPaymentTable();
+            renderHistoryManagerTable();
         }
 
-        // 대시보드 차트 시각화
         function renderDashboardCharts() {
-            // 1. 계약상태 도넛 차트
             let useCount = customerDataList.filter(x => x.status === '사용').length;
             let stopCount = customerDataList.filter(x => x.status === '중지').length;
-            let cancelCount = customerDataList.filter(x => x.status === '해지').length;
 
             let ctxPie = document.getElementById('chartStatusPie');
             if (ctxPie) {
@@ -884,10 +1035,10 @@
                 chartStatusInstance = new Chart(ctxPie, {
                     type: 'doughnut',
                     data: {
-                        labels: ['사용 중', '중지', '해지'],
+                        labels: ['사용 중', '중지'],
                         datasets: [{
-                            data: [useCount, stopCount, cancelCount],
-                            backgroundColor: ['#10b981', '#f59e0b', '#ef4444']
+                            data: [useCount, stopCount],
+                            backgroundColor: ['#10b981', '#f59e0b']
                         }]
                     },
                     options: {
@@ -898,7 +1049,6 @@
                 });
             }
 
-            // 2. 월별 청구 vs 수납 vs 정산 실적 막대 차트 (2026년 기준)
             let months = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
             let billData = Array(12).fill(0);
             let paidData = Array(12).fill(0);
@@ -909,7 +1059,8 @@
                 for (let m = 1; m <= 12; m++) {
                     let monthKey = `2026-${String(m).padStart(2, '0')}`;
                     let mData = userPayMap[monthKey] || {};
-                    billData[m - 1] += c.amount || 0;
+                    let bAmt = getBillingAmountForMonth(c.no, monthKey);
+                    billData[m - 1] += bAmt !== null ? bAmt : 0;
                     paidData[m - 1] += mData.paid || 0;
                     settleData[m - 1] += mData.settle || 0;
                 }
@@ -937,7 +1088,6 @@
                 });
             }
 
-            // 3. 대리점별 고객 관리 현황 가로 막대 차트
             let agencyCounts = {};
             customerDataList.forEach(c => {
                 let ag = c.agency || '미지정';
@@ -1158,6 +1308,7 @@
             checkboxes.forEach(cb => cb.checked = master.checked);
         }
 
+        // 고객 엑셀 업로드
         document.getElementById('fileInput').addEventListener('change', function(e) {
             let file = e.target.files[0];
             if (!file) return;
@@ -1171,24 +1322,50 @@
                     let rawData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {defval: ""});
 
                     if (rawData.length > 0 && rawData[0]['회원번호'] !== undefined && rawData[0]['회원명'] !== undefined) {
-                        customerDataList = rawData.map((row, idx) => ({
-                            idx: idx + 1,
-                            no: String(row['회원번호'] || ''),
-                            name: String(row['회원명'] || ''),
-                            phone: String(row['납부자 휴대전화'] || ''),
-                            status: String(row['계약상태'] || '사용'),
-                            startDate: String(row['청구시작일'] || '').split('T')[0],
-                            amount: parseInt(row['청구금액'] || row['상품금액합'] || row['상품금액']) || 0,
-                            commission: parseInt(row['영업수수료']) || 0,
-                            type: String(row['회원구분'] || '미지정'),
-                            agency: String(row['대리점'] || '-'),
-                            store: String(row['가맹점'] || '-'),
-                            manager: String(row['영업대표'] || '-')
-                        }));
+                        customerDataList = rawData.map((row, idx) => {
+                            let custNo = String(row['회원번호'] || '');
+                            let startD = String(row['청구시작일'] || '').split('T')[0];
+                            let typeStr = String(row['회원구분'] || '미지정');
+                            let pAmt = parseInt(row['상품금액합'] || row['상품금액']) || 0;
+                            let cAmt = parseInt(row['영업수수료']) || 0;
+
+                            // AI스캐너 회원구분 수수료 자동 할당
+                            if (typeStr === 'AI스캐너') {
+                                let commMap = { 66000:0, 104500:0, 132000:27500, 165000:44000, 264000:55000, 286000:77000 };
+                                if (commMap[pAmt] !== undefined) cAmt = commMap[pAmt];
+                            }
+
+                            // 청구시작일 존재 시 계약이력에 '사용 : YYYY-MM-DD' 자동 생성
+                            if (custNo && startD) {
+                                if (!contractHistoryMap[custNo]) contractHistoryMap[custNo] = [];
+                                contractHistoryMap[custNo].unshift({
+                                    type: '사용',
+                                    date: startD,
+                                    memo: '청구시작일 자동연동',
+                                    fileName: ''
+                                });
+                            }
+
+                            return {
+                                idx: idx + 1,
+                                no: custNo,
+                                name: String(row['회원명'] || ''),
+                                phone: String(row['납부자 휴대전화'] || ''),
+                                status: String(row['계약상태'] || '사용'),
+                                startDate: startD,
+                                amount: pAmt,
+                                commission: cAmt,
+                                type: typeStr,
+                                agency: String(row['대리점'] || '-'),
+                                store: String(row['가맹점'] || '-'),
+                                manager: String(row['영업대표'] || '-')
+                            };
+                        });
 
                         updateSelectOptions();
                         updateTabBadges();
                         filterCustomerTable();
+                        renderHistoryManagerTable();
                         updateKPIs();
                         renderDashboardCharts();
                         syncToFirebase();
@@ -1202,6 +1379,7 @@
             e.target.value = '';
         });
 
+        // 청구목록 엑셀 업로드
         document.getElementById('billingFileInput').addEventListener('change', function(e) {
             let file = e.target.files[0];
             if (!file) return;
@@ -1220,11 +1398,6 @@
                             let billAmt = parseInt(row['청구금액']) || 0;
                             let month = String(row['청구월'] || '').replace('/', '-').trim();
 
-                            let custItem = customerDataList.find(c => c.no === no);
-                            if (custItem && billAmt > 0) {
-                                custItem.amount = billAmt;
-                            }
-
                             return {
                                 idx: idx + 1,
                                 no: no,
@@ -1242,7 +1415,7 @@
                         filterPaymentTable();
                         renderDashboardCharts();
                         syncToFirebase();
-                        alert(`총 ${billingDataList.length}건의 청구 내역이 등록되었으며, 청구금액이 연동 반영되었습니다.`);
+                        alert(`총 ${billingDataList.length}건의 청구 내역이 등록되었습니다.`);
                     } else {
                         alert("청구목록 엑셀 포맷을 확인해 주세요.");
                     }
@@ -1254,6 +1427,7 @@
             e.target.value = '';
         });
 
+        // 수금 결제 파일 업로드
         document.getElementById('paymentFileInput').addEventListener('change', function(e) {
             let file = e.target.files[0];
             if (!file) return;
@@ -1304,6 +1478,7 @@
             e.target.value = '';
         });
 
+        // 고객관리 표 렌더링
         function renderCustomerTable(dataList) {
             let tbody = "";
             dataList.forEach((item, index) => {
@@ -1311,8 +1486,11 @@
                 
                 let hList = contractHistoryMap[item.no] || [];
                 let historySummary = hList.length > 0 
-                    ? `<div style="font-size:11px; color:#2563eb; font-weight:600;">${hList[0].type} : ${hList[0].startDate || '-'} ~ ${hList[0].endDate || '-'}</div>`
+                    ? `<div style="font-size:11px; color:#2563eb; font-weight:600;">${hList[0].type} : ${hList[0].date || hList[0].startDate || '-'}</div>`
                     : `<div style="font-size:11px; color:#94a3b8;">이력 없음</div>`;
+
+                let amountDisplay = (item.amount && item.amount > 0) ? `${item.amount.toLocaleString()} 원` : '-';
+                let commissionDisplay = (item.commission && item.commission > 0) ? `${item.commission.toLocaleString()} 원` : '-';
 
                 tbody += `<tr>
                     <td class="text-center"><input type="checkbox" class="cust-check" value="${item.idx}" /></td>
@@ -1329,8 +1507,8 @@
                         ${statusBadge}
                         <div class="sub-text">(${item.startDate || '-'})</div>
                     </td>
-                    <td class="text-right" style="font-weight:700;">${item.amount.toLocaleString()} 원</td>
-                    <td class="text-right" style="font-weight:600; color:#1e293b;">${(item.commission || 0).toLocaleString()} 원</td>
+                    <td class="text-right" style="font-weight:700;">${amountDisplay}</td>
+                    <td class="text-right" style="font-weight:600; color:#1e293b;">${commissionDisplay}</td>
                     <td>${item.type}</td>
                     <td>${item.agency || '-'}</td>
                     <td>${item.store || '-'}</td>
@@ -1339,12 +1517,223 @@
                         ${historySummary}
                         <button class="btn-action" style="margin-top:2px;" onclick="openContractHistoryModal('${item.no}')">등록</button>
                     </td>
-                    <td class="text-center"><button class="btn-action" onclick="alert('서류 등록 기능 준비 중')">서류등록</button></td>
-                    <td class="text-center"><button class="btn-action" onclick="alert('상담 내역 기능 준비 중')">상담내역</button></td>
+                    <!-- 서류 및 상담내역 모달 연결 -->
+                    <td class="text-center"><button class="btn-action" onclick="openDocModal('${item.no}')">서류등록</button></td>
+                    <td class="text-center"><button class="btn-action" onclick="openCounselModal('${item.no}')">상담내역</button></td>
                 </tr>`;
             });
             document.getElementById('customer-table-body').innerHTML = tbody;
             document.getElementById('selectAllCustomer').checked = false;
+        }
+
+        // 계약이력관리 독립 창 테이블 렌더링
+        function renderHistoryManagerTable() {
+            let tbody = "";
+            let query = document.getElementById('searchInput').value.toLowerCase().trim();
+            let selectedType = document.getElementById('histFilterType') ? document.getElementById('histFilterType').value : 'ALL';
+
+            let count = 0;
+            customerDataList.forEach((cust) => {
+                let hList = contractHistoryMap[cust.no] || [];
+                hList.forEach((h, hIdx) => {
+                    let dateDisplay = h.date || h.startDate || '-';
+                    
+                    let matchesSearch = (cust.no || '').toLowerCase().includes(query) ||
+                                        (cust.name || '').toLowerCase().includes(query) ||
+                                        (h.memo || '').toLowerCase().includes(query);
+                    let matchesType = (selectedType === 'ALL') || (h.type === selectedType);
+
+                    if (matchesSearch && matchesType) {
+                        count++;
+                        let fileStr = h.fileName ? `<span style="color:#2563eb; font-size:11px;">📄 ${h.fileName}</span>` : '-';
+                        
+                        tbody += `<tr>
+                            <td class="text-center">${count}</td>
+                            <td style="font-weight:600;">${cust.no}</td>
+                            <td style="font-weight:700;">${cust.name}</td>
+                            <td>
+                                <select class="table-input-inline" id="hm_type_${cust.no}_${hIdx}">
+                                    <option value="사용" ${h.type === '사용' ? 'selected' : ''}>사용</option>
+                                    <option value="중지" ${h.type === '중지' ? 'selected' : ''}>중지</option>
+                                    <option value="계약변경" ${h.type === '계약변경' ? 'selected' : ''}>계약변경</option>
+                                    <option value="상품금액변경" ${h.type === '상품금액변경' ? 'selected' : ''}>상품금액변경</option>
+                                    <option value="영업수수료변경" ${h.type === '영업수수료변경' ? 'selected' : ''}>영업수수료변경</option>
+                                </select>
+                            </td>
+                            <td><input type="date" class="table-input-inline" id="hm_date_${cust.no}_${hIdx}" value="${dateDisplay}" /></td>
+                            <td><input type="text" class="table-input-inline" id="hm_memo_${cust.no}_${hIdx}" value="${h.memo || ''}" style="width:100%;" /></td>
+                            <td>${fileStr}</td>
+                            <td class="text-center">
+                                <button class="btn-action" onclick="updateSingleHistory('${cust.no}', ${hIdx})">수정</button>
+                                <button class="btn-danger" style="font-size:11px; padding:3px 6px;" onclick="deleteSingleHistory('${cust.no}', ${hIdx})">삭제</button>
+                            </td>
+                        </tr>`;
+                    }
+                });
+            });
+
+            if (count === 0) {
+                tbody = `<tr><td colspan="8" class="text-center" style="color:#94a3b8; padding:30px;">조회된 계약 이력이 없습니다.</td></tr>`;
+            }
+
+            document.getElementById('history-manager-tbody').innerHTML = tbody;
+        }
+
+        function updateSingleHistory(custNo, hIdx) {
+            if (!contractHistoryMap[custNo] || !contractHistoryMap[custNo][hIdx]) return;
+
+            let newType = document.getElementById(`hm_type_${custNo}_${hIdx}`).value;
+            let newDate = document.getElementById(`hm_date_${custNo}_${hIdx}`).value;
+            let newMemo = document.getElementById(`hm_memo_${custNo}_${hIdx}`).value.trim();
+
+            contractHistoryMap[custNo][hIdx].type = newType;
+            contractHistoryMap[custNo][hIdx].date = newDate;
+            contractHistoryMap[custNo][hIdx].memo = newMemo;
+
+            renderHistoryManagerTable();
+            filterCustomerTable();
+            syncToFirebase();
+            alert("계약 이력이 수정되었습니다.");
+        }
+
+        function deleteSingleHistory(custNo, hIdx) {
+            if (!confirm("이 계약 이력을 삭제하시겠습니까?")) return;
+            if (contractHistoryMap[custNo]) {
+                contractHistoryMap[custNo].splice(hIdx, 1);
+            }
+            renderHistoryManagerTable();
+            filterCustomerTable();
+            syncToFirebase();
+            alert("계약 이력이 삭제되었습니다.");
+        }
+
+        /* --- [신규 추가] 서류 및 상담내역 전용 모달 제어 로직 --- */
+        function openDocModal(no) {
+            let cust = customerDataList.find(c => c.no === no);
+            if (!cust) return;
+
+            document.getElementById('doc_cust_no').value = cust.no;
+            document.getElementById('doc_cust_info').innerText = `[${cust.no}] ${cust.name} 가맹점 서류 관리`;
+
+            renderDocList(no);
+            openModal('docModal');
+        }
+
+        function renderDocList(no) {
+            let list = docDataMap[no] || [];
+            let container = document.getElementById('docListContainer');
+
+            if (list.length === 0) {
+                container.innerHTML = `<div style="text-align:center; color:#94a3b8; padding:20px;">등록된 서류가 없습니다.</div>`;
+                return;
+            }
+
+            let html = "";
+            list.forEach((d, idx) => {
+                let fileStr = d.fileName ? `<span style="color:#2563eb;">📄 ${d.fileName}</span>` : '파일없음';
+                html += `<div class="history-item">
+                    <div>
+                        <strong>[${d.name}]</strong> ${fileStr} <span class="val-date">(${d.date})</span>
+                    </div>
+                    <button class="btn-danger" style="font-size:11px; padding:2px 6px;" onclick="deleteDocRecord('${no}', ${idx})">삭제</button>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function saveDocRecord() {
+            let no = document.getElementById('doc_cust_no').value;
+            let docName = document.getElementById('doc_name').value.trim();
+            let fileInput = document.getElementById('doc_file_input');
+            let fileName = fileInput.files.length > 0 ? fileInput.files[0].name : '';
+
+            if (!docName) { alert("서류 이름을 입력해주세요."); return; }
+
+            if (!docDataMap[no]) docDataMap[no] = [];
+            let todayStr = new Date().toISOString().split('T')[0];
+
+            docDataMap[no].unshift({
+                name: docName,
+                fileName: fileName,
+                date: todayStr
+            });
+
+            document.getElementById('doc_name').value = '';
+            fileInput.value = '';
+
+            renderDocList(no);
+            syncToFirebase();
+            alert("서류가 정상 등록되었습니다.");
+        }
+
+        function deleteDocRecord(no, idx) {
+            if (!confirm("이 서류 항목을 삭제하시겠습니까?")) return;
+            if (docDataMap[no]) docDataMap[no].splice(idx, 1);
+            renderDocList(no);
+            syncToFirebase();
+        }
+
+        function openCounselModal(no) {
+            let cust = customerDataList.find(c => c.no === no);
+            if (!cust) return;
+
+            document.getElementById('counsel_cust_no').value = cust.no;
+            document.getElementById('counsel_cust_info').innerText = `[${cust.no}] ${cust.name} 가맹점 상담 내역`;
+
+            renderCounselList(no);
+            openModal('counselModal');
+        }
+
+        function renderCounselList(no) {
+            let list = counselDataMap[no] || [];
+            let container = document.getElementById('counselListContainer');
+
+            if (list.length === 0) {
+                container.innerHTML = `<div style="text-align:center; color:#94a3b8; padding:20px;">등록된 상담내역이 없습니다.</div>`;
+                return;
+            }
+
+            let html = "";
+            list.forEach((c, idx) => {
+                html += `<div class="history-item">
+                    <div>
+                        <strong>[${c.type}]</strong> <span class="val-date">${c.date}</span>
+                        <div style="font-size:12px; color:#1e293b; margin-top:2px;">${c.text}</div>
+                    </div>
+                    <button class="btn-danger" style="font-size:11px; padding:2px 6px;" onclick="deleteCounselRecord('${no}', ${idx})">삭제</button>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function saveCounselRecord() {
+            let no = document.getElementById('counsel_cust_no').value;
+            let date = document.getElementById('counsel_date').value;
+            let type = document.getElementById('counsel_type').value;
+            let text = document.getElementById('counsel_text').value.trim();
+
+            if (!text) { alert("상담 내용을 입력해주세요."); return; }
+
+            if (!counselDataMap[no]) counselDataMap[no] = [];
+
+            counselDataMap[no].unshift({
+                date: date || new Date().toISOString().split('T')[0],
+                type: type,
+                text: text
+            });
+
+            document.getElementById('counsel_text').value = '';
+
+            renderCounselList(no);
+            syncToFirebase();
+            alert("상담 내역이 추가되었습니다.");
+        }
+
+        function deleteCounselRecord(no, idx) {
+            if (!confirm("이 상담 기록을 삭제하시겠습니까?")) return;
+            if (counselDataMap[no]) counselDataMap[no].splice(idx, 1);
+            renderCounselList(no);
+            syncToFirebase();
         }
 
         function renderBillingTable() {
@@ -1358,7 +1747,7 @@
                         <td style="font-weight:600;">${b.no}</td>
                         <td style="font-weight:700;">${b.name}</td>
                         <td class="text-center">${b.month}</td>
-                        <td class="text-right" style="font-weight:700; color:#2563eb;">${b.amount.toLocaleString()} 원</td>
+                        <td class="text-right" style="font-weight:700; color:#2563eb;">${b.amount ? b.amount.toLocaleString() + ' 원' : '-'}</td>
                         <td class="text-center"><span class="badge-status badge-use">${b.status || '청구'}</span></td>
                         <td>${b.product || '-'}</td>
                         <td>${b.payMethod || '-'}</td>
@@ -1393,6 +1782,11 @@
                 let summary = getYearlySummary(item.no, currentModalYear);
                 let statusBadge = item.status === '사용' ? '<span class="badge-status badge-use">사용</span>' : '<span class="badge-status badge-stop">'+item.status+'</span>';
 
+                let monthKey = `${currentModalYear}-10`;
+                let bAmt = getBillingAmountForMonth(item.no, monthKey);
+                let billDisplay = (bAmt !== null && bAmt > 0) ? `${bAmt.toLocaleString()} 원` : '-';
+                let commissionDisplay = (item.commission && item.commission > 0) ? `${item.commission.toLocaleString()} 원` : '-';
+
                 tbody += `<tr>
                     <td class="text-center">${index + 1}</td>
                     <td style="font-weight:700;">
@@ -1403,8 +1797,8 @@
                     <td>${item.agency || '-'}</td>
                     <td>${item.store || '-'}</td>
                     <td>${item.manager || '-'}</td>
-                    <td class="text-right" style="color:#1e293b;">${item.amount.toLocaleString()} 원</td>
-                    <td class="text-right" style="color:#1e293b;">${(item.commission || 0).toLocaleString()} 원</td>
+                    <td class="text-right" style="color:#1e293b;">${billDisplay}</td>
+                    <td class="text-right" style="color:#1e293b;">${commissionDisplay}</td>
                     <td class="text-right" style="color:#1e293b; font-weight:600;">${summary.paid.toLocaleString()} 원</td>
                     <td class="text-right" style="color:#1e293b; font-weight:600;">${summary.settle.toLocaleString()} 원</td>
                     <td class="text-right" style="color:${summary.unpaid > 0 ? '#dc2626' : '#1e293b'}; font-weight:700;">${summary.unpaid.toLocaleString()} 원</td>
@@ -1446,13 +1840,19 @@
             let tbody = "";
 
             let sumAmt = 0, sumComm = 0, sumPaid = 0, sumSettle = 0, sumUnpaid = 0, sumUnsettled = 0;
+            let hasAmt = false, hasComm = false;
 
             for (let m = 1; m <= 12; m++) {
                 let monthStr = `${currentModalYear}-${String(m).padStart(2, '0')}`;
                 let mData = userPayMap[monthStr] || {};
 
-                let pAmt = mData.amount !== undefined ? mData.amount : item.amount;
-                let cAmt = mData.commission !== undefined ? mData.commission : (item.commission || 0);
+                let bAmt = getBillingAmountForMonth(no, monthStr);
+                let cAmt = mData.commission !== undefined ? mData.commission : 0;
+
+                if (bAmt !== null && bAmt > 0) hasAmt = true;
+                if (cAmt > 0) hasComm = true;
+
+                let pAmt = bAmt !== null ? bAmt : 0;
                 let paidAmt = mData.paid || 0;
                 let paidDate = mData.paidDate || ''; 
                 let settleAmt = mData.settle || 0;
@@ -1466,6 +1866,9 @@
                 sumSettle += settleAmt;
                 sumUnpaid += unpaidAmt;
                 sumUnsettled += unsettledAmt;
+
+                let pAmtDisplay = (bAmt !== null && bAmt > 0) ? bAmt.toLocaleString() : '-';
+                let cAmtDisplay = (cAmt > 0) ? cAmt.toLocaleString() : '-';
 
                 let paidHtml = paidAmt > 0 
                     ? `<div class="val-item">
@@ -1485,8 +1888,8 @@
 
                 tbody += `<tr>
                     <td class="text-center" style="font-weight:600; background:#f8fafc;">${monthStr}</td>
-                    <td class="text-right">${pAmt.toLocaleString()}</td>
-                    <td class="text-right">${cAmt.toLocaleString()}</td>
+                    <td class="text-right">${pAmtDisplay}</td>
+                    <td class="text-right">${cAmtDisplay}</td>
                     <td class="text-right">${paidHtml}</td>
                     <td class="text-right">${settleHtml}</td>
                     <td class="text-right" style="color:${unpaidAmt > 0 ? '#dc2626' : '#1e293b'}; font-weight:700;">${unpaidAmt.toLocaleString()}</td>
@@ -1496,8 +1899,8 @@
 
             document.getElementById('payment-modal-tbody').innerHTML = tbody;
 
-            document.getElementById('sum_product').innerText = sumAmt.toLocaleString();
-            document.getElementById('sum_commission').innerText = sumComm.toLocaleString();
+            document.getElementById('sum_product').innerText = hasAmt ? sumAmt.toLocaleString() : '-';
+            document.getElementById('sum_commission').innerText = hasComm ? sumComm.toLocaleString() : '-';
             document.getElementById('sum_paid').innerText = sumPaid.toLocaleString();
             document.getElementById('sum_settle').innerText = sumSettle.toLocaleString();
             document.getElementById('sum_unpaid').innerText = sumUnpaid.toLocaleString();
@@ -1534,14 +1937,14 @@
             if (!no) return;
             if (!paymentDataMap[no]) paymentDataMap[no] = {};
 
-            let item = customerDataList.find(x => x.no === no);
-            let pAmt = item ? item.amount : 0;
             let monthStr = `${currentModalYear}-${month}`;
+            let bAmt = getBillingAmountForMonth(no, monthStr);
+            let pAmt = bAmt !== null ? bAmt : 0;
 
             if (!paymentDataMap[no][monthStr]) {
                 paymentDataMap[no][monthStr] = {
                     amount: pAmt,
-                    commission: item ? item.commission : 0,
+                    commission: 0,
                     paid: 0,
                     paidDate: '',
                     settle: 0,
@@ -1610,9 +2013,10 @@
             let html = "";
             list.forEach((h, idx) => {
                 let fileStr = h.fileName ? `<span style="color:#2563eb; font-size:11px;">(📄 ${h.fileName})</span>` : '';
+                let dateDisplay = h.date || h.startDate || '-';
                 html += `<div class="history-item">
                     <div>
-                        <strong>[${h.type}]</strong> ${h.startDate || '-'} ~ ${h.endDate || '-'} ${fileStr}
+                        <strong>[${h.type}]</strong> ${dateDisplay} ${fileStr}
                         <div style="font-size:11px; color:#64748b; margin-top:2px;">${h.memo || ''}</div>
                     </div>
                     <button class="btn-danger" style="font-size:11px; padding:2px 6px;" onclick="deleteContractHistory('${no}', ${idx})">삭제</button>
@@ -1624,8 +2028,7 @@
         function saveContractHistory() {
             let no = document.getElementById('h_cust_no').value;
             let type = document.getElementById('h_type').value;
-            let startDate = document.getElementById('h_start').value;
-            let endDate = document.getElementById('h_end').value;
+            let date = document.getElementById('h_date').value;
             let memo = document.getElementById('h_memo').value.trim();
             let fileInput = document.getElementById('h_file');
             let fileName = fileInput.files.length > 0 ? fileInput.files[0].name : '';
@@ -1634,19 +2037,18 @@
 
             contractHistoryMap[no].unshift({
                 type: type,
-                startDate: startDate,
-                endDate: endDate,
+                date: date,
                 memo: memo,
                 fileName: fileName
             });
 
-            document.getElementById('h_start').value = '';
-            document.getElementById('h_end').value = '';
+            document.getElementById('h_date').value = '';
             document.getElementById('h_memo').value = '';
             fileInput.value = '';
 
             renderHistoryList(no);
             filterCustomerTable();
+            renderHistoryManagerTable();
             syncToFirebase();
             alert("새 계약 이력이 추가되었습니다.");
         }
@@ -1658,6 +2060,7 @@
             }
             renderHistoryList(no);
             filterCustomerTable();
+            renderHistoryManagerTable();
             syncToFirebase();
         }
 
@@ -1674,6 +2077,7 @@
             updateSelectOptions();
             updateTabBadges();
             filterCustomerTable();
+            renderHistoryManagerTable();
             updateKPIs();
             renderDashboardCharts();
             syncToFirebase();
@@ -1693,7 +2097,7 @@
 
             let excelRows = exportData.map(item => {
                 let hList = contractHistoryMap[item.no] || [];
-                let lastHistory = hList.length > 0 ? `${hList[0].type} (${hList[0].startDate}~${hList[0].endDate})` : '-';
+                let lastHistory = hList.length > 0 ? `${hList[0].type} (${hList[0].date || hList[0].startDate || '-'})` : '-';
                 return {
                     'NO.': item.idx,
                     '회원번호': item.no,
@@ -1701,8 +2105,8 @@
                     '납부자 휴대전화': item.phone,
                     '계약상태': item.status,
                     '청구시작일': item.startDate,
-                    '청구금액': item.amount,
-                    '영업수수료': item.commission || 0,
+                    '상품금액': item.amount || '-',
+                    '영업수수료': item.commission || '-',
                     '회원구분': item.type,
                     '대리점': item.agency || '-',
                     '가맹점': item.store || '-',
@@ -1726,6 +2130,7 @@
             let excelRows = customerDataList.map(item => {
                 let summary = getYearlySummary(item.no, currentModalYear);
                 let memoInfo = (paymentDataMap[item.no] || {})['MEMO'] || {};
+                let bAmt = getBillingAmountForMonth(item.no, `${currentModalYear}-10`);
                 return {
                     '회원번호': item.no,
                     '회원명': item.name,
@@ -1733,8 +2138,8 @@
                     '대리점': item.agency || '-',
                     '가맹점': item.store || '-',
                     '영업대표': item.manager || '-',
-                    '청구금액': item.amount,
-                    '영업수수료': item.commission || 0,
+                    '청구금액': bAmt !== null ? bAmt : '-',
+                    '영업수수료': item.commission || '-',
                     '연간수납금액': summary.paid,
                     '연간정산금액': summary.settle,
                     '연간미납금액': summary.unpaid,
@@ -1760,8 +2165,8 @@
             document.getElementById('edit_phone').value = item.phone;
             document.getElementById('edit_status').value = item.status;
             document.getElementById('edit_start').value = item.startDate;
-            document.getElementById('edit_amount').value = item.amount;
-            document.getElementById('edit_commission').value = item.commission || 0;
+            document.getElementById('edit_amount').value = item.amount || '';
+            document.getElementById('edit_commission').value = item.commission || '';
             document.getElementById('edit_type').value = item.type;
             document.getElementById('edit_agency').value = item.agency || '-';
             document.getElementById('edit_store').value = item.store || '-';
@@ -1770,30 +2175,60 @@
             openModal('detailModal');
         }
 
+        // 고객 세부정보 수정 시 상품금액 및 영업수수료 변경건 계약이력 자동 추가 로직 포함
         function updateCustomerDetail() {
             let idx = parseInt(document.getElementById('edit_idx').value);
             let item = customerDataList.find(x => x.idx === idx);
             if (!item) return;
 
+            let oldAmt = item.amount || 0;
+            let oldComm = item.commission || 0;
+            let newAmt = parseInt(document.getElementById('edit_amount').value) || 0;
+            let newComm = parseInt(document.getElementById('edit_commission').value) || 0;
+            let todayStr = new Date().toISOString().split('T')[0];
+
             item.name = document.getElementById('edit_name').value.trim();
             item.phone = document.getElementById('edit_phone').value.trim();
             item.status = document.getElementById('edit_status').value;
             item.startDate = document.getElementById('edit_start').value.trim();
-            item.amount = parseInt(document.getElementById('edit_amount').value) || 0;
-            item.commission = parseInt(document.getElementById('edit_commission').value) || 0;
+            item.amount = newAmt;
+            item.commission = newComm;
             item.type = document.getElementById('edit_type').value.trim();
             item.agency = document.getElementById('edit_agency').value.trim();
             item.store = document.getElementById('edit_store').value.trim();
             item.manager = document.getElementById('edit_manager').value.trim();
 
+            // 상품금액 변경 감지 시 계약이력에 자동 등록
+            if (oldAmt !== newAmt) {
+                if (!contractHistoryMap[item.no]) contractHistoryMap[item.no] = [];
+                contractHistoryMap[item.no].unshift({
+                    type: '상품금액변경',
+                    date: todayStr,
+                    memo: `상품금액 변경: ${oldAmt.toLocaleString()}원 -> ${newAmt.toLocaleString()}원`,
+                    fileName: ''
+                });
+            }
+
+            // 영업수수료 변경 감지 시 계약이력에 자동 등록
+            if (oldComm !== newComm) {
+                if (!contractHistoryMap[item.no]) contractHistoryMap[item.no] = [];
+                contractHistoryMap[item.no].unshift({
+                    type: '영업수수료변경',
+                    date: todayStr,
+                    memo: `영업수수료 변경: ${oldComm.toLocaleString()}원 -> ${newComm.toLocaleString()}원`,
+                    fileName: ''
+                });
+            }
+
             updateSelectOptions();
             updateTabBadges();
             filterCustomerTable();
+            renderHistoryManagerTable();
             updateKPIs();
             renderDashboardCharts();
             closeModal('detailModal');
             syncToFirebase();
-            alert("고객 세부 내역이 수정되었습니다.");
+            alert("고객 세부 내역이 수정되었으며 변경사항이 계약이력에 자동 기록되었습니다.");
         }
 
         function deleteCustomer() {
@@ -1804,6 +2239,7 @@
             updateSelectOptions();
             updateTabBadges();
             filterCustomerTable();
+            renderHistoryManagerTable();
             updateKPIs();
             renderDashboardCharts();
             closeModal('detailModal');
@@ -1816,13 +2252,27 @@
             let name = document.getElementById('m_name').value.trim();
             if (!no || !name) { alert("회원번호와 회원명은 필수입니다."); return; }
 
+            let startD = document.getElementById('m_start').value;
+            let statusVal = document.getElementById('m_status').value;
+
+            // 수동 등록 시 청구시작일이 있으면 계약이력 자동 등록
+            if (no && startD) {
+                if (!contractHistoryMap[no]) contractHistoryMap[no] = [];
+                contractHistoryMap[no].unshift({
+                    type: statusVal || '사용',
+                    date: startD,
+                    memo: '신규등록 시 청구시작일 자동연동',
+                    fileName: ''
+                });
+            }
+
             customerDataList.unshift({
                 idx: Date.now(),
                 no: no,
                 name: name,
                 phone: document.getElementById('m_phone').value.trim(),
-                status: document.getElementById('m_status').value,
-                startDate: document.getElementById('m_start').value,
+                status: statusVal,
+                startDate: startD,
                 amount: parseInt(document.getElementById('m_amount').value) || 0,
                 commission: parseInt(document.getElementById('m_commission').value) || 0,
                 type: document.getElementById('m_type').value.trim() || '미지정',
@@ -1834,6 +2284,7 @@
             updateSelectOptions();
             updateTabBadges();
             filterCustomerTable();
+            renderHistoryManagerTable();
             renderDashboardCharts();
             closeModal('customerModal');
             syncToFirebase();
@@ -1843,7 +2294,7 @@
         function updateKPIs() {
             let totalStores = customerDataList.length;
             let useStores = customerDataList.filter(x => x.status === '사용').length;
-            let totalAmt = customerDataList.reduce((acc, cur) => acc + cur.amount, 0);
+            let totalAmt = customerDataList.reduce((acc, cur) => acc + (cur.amount || 0), 0);
 
             let unpaidIssueCount = 0;
             customerDataList.forEach(c => {
