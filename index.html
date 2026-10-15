@@ -967,7 +967,7 @@
             e.target.value = '';
         });
 
-        // 고객관리 표 렌더링 (회원번호 클릭 시 고객 상세 팝업 오픈 연동)
+        // 고객관리 표 렌더링 (회원번호 클릭 시 고객 세부정보 팝업 모달 연동)
         function renderCustomerTable(dataList) {
             let tbody = "";
             dataList.forEach((item, index) => {
@@ -981,7 +981,7 @@
                 tbody += `<tr>
                     <td class="text-center"><input type="checkbox" class="cust-check" value="${item.idx}" /></td>
                     <td class="text-center">${item.idx}</td>
-                    <!-- 회원번호 클릭 시 세부정보 팝업 모달 연동 -->
+                    <!-- 고객관리 회원번호 클릭 시 세부정보 팝업 연동 -->
                     <td style="font-weight:600;">
                         <a href="javascript:void(0)" style="color:#1e293b; text-decoration:none;" onclick="openDetailModal(${item.idx})" title="고객 세부정보 보기">${item.no}</a>
                     </td>
@@ -1030,7 +1030,7 @@
             filterPaymentTable();
         }
 
-        // 수금관리 표 렌더링 (회원번호 검은색 및 밑줄 제거 적용)
+        // 수금관리 표 렌더링 (회원번호 검은색 및 밑줄 없음 적용)
         function renderPaymentTableContent(dataList) {
             let tbody = "";
             dataList.forEach((item, index) => {
@@ -1040,7 +1040,7 @@
                 tbody += `<tr>
                     <td class="text-center">${index + 1}</td>
                     <td style="font-weight:700;">
-                        <!-- 회원번호 검은색(#1e293b) 및 밑줄 제거 -->
+                        <!-- 수금관리 회원번호 검은색(#1e293b) 및 밑줄 제거 적용 -->
                         <a href="javascript:void(0)" style="color:#1e293b; text-decoration:none;" onclick="openPaymentDetailModal('${item.no}')" title="월별 상세 수금내역 보기">${item.no}</a>
                     </td>
                     <td style="font-weight:700;">${item.name}</td>
