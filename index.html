@@ -29,7 +29,7 @@
         * { box-sizing: border-box; }
         body { margin: 0; padding: 0; background-color: var(--bg-color); font-family: 'Pretendard', sans-serif; color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
 
-        /* 좌측 사이드바 계층 메뉴 Layout */
+        /* 좌측 사이드바 Layout */
         .sidebar { width: 250px; background-color: var(--sidebar-bg); display: flex; flex-direction: column; flex-shrink: 0; border-right: 1px solid #1e232d; }
         .sidebar-brand { height: 60px; background-color: var(--sidebar-header); color: #ffffff; display: flex; align-items: center; padding: 0 20px; font-size: 17px; font-weight: 800; gap: 8px; border-bottom: 1px solid #272d38; }
         
@@ -54,7 +54,6 @@
         /* 메인 컨텐츠 영역 */
         .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* 상단 헤더 및 검색바 */
         .header { height: 60px; background-color: #ffffff; display: flex; justify-content: space-between; align-items: center; padding: 0 28px; border-bottom: 1px solid var(--border-color); box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
         .header-title { font-size: 18px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px; }
         .header-actions { display: flex; gap: 10px; align-items: center; }
@@ -72,13 +71,10 @@
         .btn-excel { background-color: #fef3c7; border-color: #f59e0b; color: #b45309; }
         .btn-excel:hover { background-color: #fde68a; }
 
-        /* 컨테이너 */
         .container { flex: 1; padding: 24px 28px; overflow-y: auto; }
         .view-section { display: none; }
-        .view-section.active { display: block; animation: fadeIn 0.2s; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
+        .view-section.active { display: block; }
 
-        /* KPI 카드 */
         .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
         .kpi-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 18px 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
         .kpi-title { font-size: 12px; color: var(--text-sub); margin-bottom: 6px; font-weight: 600; }
@@ -89,7 +85,7 @@
         .content-card h3 { margin-top: 0; font-size: 15px; color: var(--text-main); margin-bottom: 14px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
         .canvas-container { position: relative; height: 280px; width: 100%; display: flex; justify-content: center; align-items: center; }
 
-        /* 테이블 스펙 */
+        /* 테이블 */
         .table-container { overflow: auto; max-height: 580px; border: 1px solid var(--border-color); border-radius: 6px; }
         table { width: 100%; border-collapse: collapse; text-align: left; }
         th, td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid var(--border-color); white-space: nowrap; vertical-align: middle; }
@@ -113,20 +109,12 @@
         .modal-header { font-size: 16px; font-weight: 700; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
         .form-group { margin-bottom: 12px; }
         .form-group label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none; }
+        .form-group input, .form-group select { width: 100%; padding: 8px 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none; }
 
         #fileInput { display: none; }
-        .loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.85); display:flex; justify-content:center; align-items:center; flex-direction:column; z-index:999; }
-        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%; width: 36px; height: 36px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-
-    <div id="loading" class="loading-overlay" style="display:none;">
-        <div class="spinner"></div>
-        <div id="loading-text" style="margin-top:12px; font-size:14px; font-weight:600; color:#475569;">데이터 처리 중...</div>
-    </div>
 
     <!-- 1. 신규 고객 수동 등록 모달 -->
     <div id="customerModal" class="modal-overlay">
@@ -156,7 +144,7 @@
         </div>
     </div>
 
-    <!-- 2. 고객 세부내역 수정/삭제 상세 모달 -->
+    <!-- 2. 고객 세부내역 수정/삭제 모달 -->
     <div id="detailModal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-header">
@@ -264,7 +252,7 @@
                                 </tr>
                             </thead>
                             <tbody id="customer-table-body">
-                                <tr><td colspan="9" style="text-align:center; padding:30px; color:#94a3b8;">'계약정보_20261015.xlsx' 파일을 업로드하거나 등록된 고객을 조회하세요.</td></tr>
+                                <tr><td colspan="9" style="text-align:center; padding:30px; color:#94a3b8;">상단 [↑ 엑셀 업로드] 버튼을 눌러 '계약정보_20261015.xlsx' 파일을 업로드해 주세요.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -279,10 +267,6 @@
                     <div class="kpi-card"><div class="kpi-title">월 상품금액 합계</div><div class="kpi-value" style="color:#10b981;" id="kpi-billing">0 원</div></div>
                     <div class="kpi-card"><div class="kpi-title">해지/중지 고객 수</div><div class="kpi-value" style="color:#ef4444;" id="kpi-agencies">0 곳</div></div>
                 </div>
-                <div class="chart-grid">
-                    <div class="content-card"><h3>🏆 회원구분별 고객 분포</h3><div class="canvas-container"><canvas id="barChart"></canvas></div></div>
-                    <div class="content-card"><h3>🗺️ 계약상태 비율</h3><div class="canvas-container"><canvas id="pieChart"></canvas></div></div>
-                </div>
             </div>
 
             <div id="view-payment" class="view-section">
@@ -293,7 +277,9 @@
                             <thead>
                                 <tr><th>회원번호</th><th>가맹점명</th><th>청구월</th><th>결제상태</th><th>결제일</th><th>정산일</th><th class="text-right">수납금액</th></tr>
                             </thead>
-                            <tbody id="payment-table-body"></tbody>
+                            <tbody id="payment-table-body">
+                                <tr><td colspan="7" style="text-align:center; padding:30px; color:#94a3b8;">수납 데이터 대기 중</td></tr>
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -302,7 +288,7 @@
             <div id="view-viscovery" class="view-section">
                 <div class="content-card">
                     <h3>⚙️ Viscovery AI스캐너 정산 현황</h3>
-                    <p style="color:#64748b; font-size:13px;">Viscovery 라이선스 계약 세부 내역이 연동되어 출력됩니다.</p>
+                    <p style="color:#64748b; font-size:13px;">Viscovery 라이선스 계약 세부 내역이 표시됩니다.</p>
                 </div>
             </div>
 
@@ -314,7 +300,9 @@
                             <thead>
                                 <tr><th>대리점명</th><th class="text-right">청구 매장 수</th><th class="text-right">수수료 합계</th></tr>
                             </thead>
-                            <tbody id="agency-summary-body"></tbody>
+                            <tbody id="agency-summary-body">
+                                <tr><td colspan="3" style="text-align:center; padding:30px; color:#94a3b8;">영업수수료 데이터 대기 중</td></tr>
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -323,9 +311,6 @@
     </div>
 
     <script>
-        const GOOGLE_SHEET_ID = "YOUR_GOOGLE_SHEET_ID_HERE";
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwaGkTHu1irC_C46B9PgA6bOLe_MSGaxA5wr27wf4_zhwMoz3SqtjfKzpU-G1IQeZTs/exec";
-
         let customerDataList = [];
 
         function toggleParent(el) {
@@ -343,9 +328,6 @@
             document.getElementById('page-title').innerText = titleText;
         }
 
-        function showLoading(text) { document.getElementById('loading-text').innerText = text; document.getElementById('loading').style.display = 'flex'; }
-        function hideLoading() { document.getElementById('loading').style.display = 'none'; }
-
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
@@ -359,13 +341,13 @@
             renderCustomerTable(filtered);
         }
 
+        // 엑셀 업로드 처리
         document.getElementById('fileInput').addEventListener('change', function(e) {
             let file = e.target.files[0];
             if (!file) return;
 
             let reader = new FileReader();
             reader.onload = function(e) {
-                showLoading("고객 계약정보 엑셀 파일을 로드 중입니다...");
                 try {
                     let data = new Uint8Array(e.target.result);
                     let workbook = XLSX.read(data, {type: 'array'});
@@ -383,12 +365,10 @@
                     }));
 
                     renderCustomerTable(customerDataList);
-                    updateKPIAndCharts();
+                    updateKPIs();
                     alert(`🎉 총 ${customerDataList.length}건의 고객 계약 정보가 자동 등록되었습니다!`);
                 } catch (err) {
                     alert("엑셀 업로드 실패: " + err);
-                } finally {
-                    hideLoading();
                 }
             };
             reader.readAsArrayBuffer(file);
@@ -398,119 +378,9 @@
         function renderCustomerTable(dataList) {
             let tbody = "";
             if (dataList.length === 0) {
-                tbody = `<tr><td colspan="9" style="text-align:center; padding:30px; color:#94a3b8;">검색 결과 또는 등록된 고객 정보가 없습니다.</td></tr>`;
+                tbody = `<tr><td colspan="9" style="text-align:center; padding:30px; color:#94a3b8;">등록된 고객 정보가 없습니다.</td></tr>`;
             } else {
                 dataList.forEach((item, index) => {
                     let statusBadge = item.status === '사용' ? '<span class="badge-status badge-use">사용</span>' : '<span class="badge-status badge-stop">'+item.status+'</span>';
                     tbody += `<tr>
-                        <td class="text-center">${index + 1}</td>
-                        <td style="font-weight:600; color:#2563eb;">${item.no}</td>
-                        <td>
-                            <div style="font-weight:700;">${item.name}</div>
-                            <button class="btn-info" onclick="openDetailModal(${item.idx})">정보</button>
-                        </td>
-                        <td>${item.phone}</td>
-                        <td>
-                            ${statusBadge}
-                            <div class="sub-text">(${item.startDate || '-'})</div>
-                        </td>
-                        <td class="text-right" style="font-weight:700;">${item.amount.toLocaleString()} 원</td>
-                        <td>${item.type}</td>
-                        <td class="text-center"><button class="btn-action" onclick="uploadDoc('${item.no}')">📄 서류등록</button></td>
-                        <td class="text-center"><button class="btn-action" onclick="addConsult('${item.no}')">💬 상담내역</button></td>
-                    </tr>`;
-                });
-            }
-            document.getElementById('customer-table-body').innerHTML = tbody;
-        }
-
-        // [정보] 버튼 클릭 시 상세 모달 오픈
-        function openDetailModal(idx) {
-            let item = customerDataList.find(x => x.idx === idx);
-            if (!item) return;
-
-            document.getElementById('edit_idx').value = item.idx;
-            document.getElementById('edit_no').value = item.no;
-            document.getElementById('edit_name').value = item.name;
-            document.getElementById('edit_phone').value = item.phone;
-            document.getElementById('edit_status').value = item.status;
-            document.getElementById('edit_start').value = item.startDate;
-            document.getElementById('edit_amount').value = item.amount;
-            document.getElementById('edit_type').value = item.type;
-
-            openModal('detailModal');
-        }
-
-        // 고객 정보 수정 저장
-        function updateCustomerDetail() {
-            let idx = parseInt(document.getElementById('edit_idx').value);
-            let item = customerDataList.find(x => x.idx === idx);
-            if (!item) return;
-
-            item.name = document.getElementById('edit_name').value.trim();
-            item.phone = document.getElementById('edit_phone').value.trim();
-            item.status = document.getElementById('edit_status').value;
-            item.startDate = document.getElementById('edit_start').value.trim();
-            item.amount = parseInt(document.getElementById('edit_amount').value) || 0;
-            item.type = document.getElementById('edit_type').value.trim();
-
-            renderCustomerTable(customerDataList);
-            updateKPIAndCharts();
-            closeModal('detailModal');
-            alert("고객 세부 내역이 성공적으로 수정되었습니다!");
-        }
-
-        // 고객 삭제
-        function deleteCustomer() {
-            let idx = parseInt(document.getElementById('edit_idx').value);
-            if (!confirm("정말로 이 고객 정보를 삭제하시겠습니까?")) return;
-
-            customerDataList = customerDataList.filter(x => x.idx !== idx);
-            renderCustomerTable(customerDataList);
-            updateKPIAndCharts();
-            closeModal('detailModal');
-            alert("고객 정보가 삭제되었습니다.");
-        }
-
-        function saveManualCustomer() {
-            let no = document.getElementById('m_no').value.trim();
-            let name = document.getElementById('m_name').value.trim();
-            if (!no || !name) { alert("회원번호와 회원명은 필수입니다."); return; }
-
-            customerDataList.unshift({
-                idx: Date.now(),
-                no: no,
-                name: name,
-                phone: document.getElementById('m_phone').value.trim(),
-                status: document.getElementById('m_status').value,
-                startDate: document.getElementById('m_start').value,
-                amount: parseInt(document.getElementById('m_amount').value) || 0,
-                type: document.getElementById('m_type').value.trim() || '미지정'
-            });
-
-            renderCustomerTable(customerDataList);
-            closeModal('customerModal');
-            alert("신규 고객이 성공적으로 등록되었습니다!");
-        }
-
-        function uploadDoc(no) { alert(`[회원번호: ${no}] 사업자등록증 및 관련 서류 등록 팝업창을 엽니다.`); }
-        function addConsult(no) { alert(`[회원번호: ${no}] 상담 내역 및 특이사항 작성 팝업창을 엽니다.`); }
-
-        function updateKPIAndCharts() {
-            let totalStores = customerDataList.length;
-            let useStores = customerDataList.filter(x => x.status === '사용').length;
-            let totalAmt = customerDataList.reduce((acc, cur) => acc + cur.amount, 0);
-
-            document.getElementById('kpi-stores').innerText = totalStores.toLocaleString() + " 곳";
-            document.getElementById('kpi-devices').innerText = useStores.toLocaleString() + " 건";
-            document.getElementById('kpi-billing').innerText = totalAmt.toLocaleString() + " 원";
-            document.getElementById('kpi-agencies').innerText = (totalStores - useStores).toLocaleString() + " 곳";
-        }
-
-        function downloadExcel() {
-            var table = document.getElementById("customerTable");
-            if (table.rows.length <= 1) return;
-            var wb = XLSX.utils.table_to_book(table, {sheet: "고객관리"});
-            XLSX.writeFile(wb, "고객관리_내역.xlsx");
-        }
-    </script
+                        <td class
