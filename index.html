@@ -131,22 +131,25 @@
         .year-btn { cursor: pointer; padding: 4px 12px; border-radius: 4px; border: 1px solid #cbd5e1; background: #ffffff; font-size: 13px; font-weight: 600; }
         .year-btn:hover { background: #f1f5f9; }
 
-        /* 상단 요약 정보 카드 스타일 */
         .modal-user-card { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px 18px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
         .modal-user-info { display: flex; gap: 24px; font-size: 14px; font-weight: 700; color: #1e3a8a; }
 
         .payment-modal-table input { border: 1px solid #cbd5e1; border-radius: 4px; padding: 4px 6px; font-size: 12px; width: 100%; text-align: right; }
         .payment-modal-table input[type="date"] { text-align: center; }
 
-        /* 삭제 X 버튼 */
         .btn-delete-x { background: transparent; border: none; color: #ef4444; font-size: 14px; font-weight: 800; cursor: pointer; padding: 2px 6px; border-radius: 4px; }
         .btn-delete-x:hover { background: #fee2e2; }
+
+        #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.7); display: none; justify-content: center; align-items: center; z-index: 2000; font-weight: 700; color: #2563eb; font-size: 16px; }
 
         #fileInput { display: none; }
         #paymentFileInput { display: none; }
     </style>
 </head>
 <body>
+
+    <!-- 동기화 로딩 오버레이 -->
+    <div id="loadingOverlay">구글 스프레드시트와 데이터를 동기화 중입니다...</div>
 
     <!-- 1. 신규 고객 수동 등록 모달 -->
     <div id="customerModal" class="modal-overlay">
@@ -272,7 +275,7 @@
         </div>
     </div>
 
-    <!-- 4. 수금 관리 회원번호 클릭 상세 모달 (상단 회원정보 고정 + 하단 등록/비고 폼) -->
+    <!-- 4. 수금 관리 회원번호 클릭 상세 모달 -->
     <div id="paymentDetailModal" class="modal-overlay">
         <div class="modal-card modal-card-large">
             <div class="modal-header">
@@ -282,7 +285,6 @@
             
             <input type="hidden" id="p_edit_no" />
 
-            <!-- 1. 상단 고객 요약 정보 카드 (회원번호, 회원명, 계약상태 상단 고정) -->
             <div class="modal-user-card">
                 <div class="modal-user-info">
                     <div><span>회원번호:</span> <strong id="m_card_no" style="color:#2563eb;">-</strong></div>
@@ -296,7 +298,6 @@
                 </div>
             </div>
 
-            <!-- 2. 월별 수금/정산 테이블 -->
             <div class="table-container payment-modal-table" style="max-height: 320px; margin-bottom: 16px;">
                 <table>
                     <thead>
@@ -325,7 +326,6 @@
                 </table>
             </div>
 
-            <!-- 3. 하단 신규 수납/정산 등록 폼 -->
             <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:14px; margin-bottom:14px;">
                 <div style="font-weight:700; font-size:13px; color:#0f172a; margin-bottom:8px;">➕ 수납 / 정산 내역 신규 등록</div>
                 <div style="display:grid; grid-template-columns: 120px 1fr 1fr 1fr 1fr auto; gap:8px; align-items:end;">
@@ -358,7 +358,6 @@
                 </div>
             </div>
 
-            <!-- 4. 하단 비고 작성 및 관리 영역 -->
             <div style="border-top:1px solid #e2e8f0; padding-top:12px;">
                 <div style="font-weight:700; font-size:13px; margin-bottom:8px; color:#0f172a;">📝 비고 작성 및 메모 관리</div>
                 <div style="display:grid; grid-template-columns: 160px 1fr auto; gap:10px; align-items:start;">
@@ -429,7 +428,6 @@
             <!-- 1. [CMS > 고객관리] 뷰 -->
             <div id="view-customer" class="view-section active">
                 
-                <!-- 조합 검색 필터 패널 -->
                 <div class="filter-panel">
                     <div class="filter-group">
                         <label>계약상태:</label>
@@ -519,7 +517,6 @@
             <!-- 3. [CMS > 수금관리] 뷰 -->
             <div id="view-payment" class="view-section">
                 
-                <!-- 수금관리 전용 필터 패널 -->
                 <div class="filter-panel" style="grid-template-columns: 1.1fr 1fr 1fr 1fr 1fr auto;">
                     <div class="filter-group">
                         <label>계약상태:</label>
@@ -626,6 +623,9 @@
     </div>
 
     <script>
+        // 제공해주신 구글 앱 스크립트(GAS) 웹앱 URL 연동
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbwaGkTHu1irC_C46B9PgA6bOLe_MSGaxA5wr27wf4_zhwMoz3SqtjfKzpU-G1IQeZTs/exec";
+
         let customerDataList = [];
         let paymentDataMap = {}; 
         let contractHistoryMap = {}; 
@@ -633,6 +633,60 @@
         let currentModalYear = 2026;
         let currentSortKey = '';
         let currentSortAsc = true;
+
+        // 페이지 로드 시 GAS 데이터 자동 로드
+        window.addEventListener('DOMContentLoaded', () => {
+            loadDataFromGAS();
+        });
+
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+        }
+
+        // 구글 앱 스크립트 데이터 불러오기 (GET)
+        async function loadDataFromGAS() {
+            showLoading(true);
+            try {
+                let response = await fetch(GAS_URL);
+                let result = await response.json();
+                if (result && result.status === 'success') {
+                    customerDataList = result.data.customers || [];
+                    paymentDataMap = result.data.payments || {};
+                    contractHistoryMap = result.data.histories || {};
+
+                    updateSelectOptions();
+                    filterCustomerTable();
+                    filterPaymentTable();
+                    updateKPIs();
+                }
+            } catch (err) {
+                console.warn("GAS 데이터 로드 통신 에러 (로컬 모드로 전환):", err);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // 구글 앱 스크립트로 최신 데이터 동기화 저장 (POST)
+        async function syncToGAS() {
+            showLoading(true);
+            try {
+                let payload = {
+                    customers: customerDataList,
+                    payments: paymentDataMap,
+                    histories: contractHistoryMap
+                };
+                await fetch(GAS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            } catch (err) {
+                console.error("GAS 저장 실패:", err);
+            } finally {
+                showLoading(false);
+            }
+        }
 
         function toggleParent(el) {
             el.classList.toggle('open');
@@ -858,6 +912,7 @@
                         updateSelectOptions();
                         filterCustomerTable();
                         updateKPIs();
+                        syncToGAS();
                         alert(`총 ${customerDataList.length}건의 고객 계약 정보가 자동 등록되었습니다.`);
                     }
                 } catch (err) {
@@ -906,6 +961,7 @@
                     });
 
                     renderPaymentTable();
+                    syncToGAS();
                     alert(`총 ${matchCount}건의 수금 결제 내역이 정상 연동되었습니다.`);
                 } catch (err) {
                     alert("수금 엑셀 업로드 실패: " + err);
@@ -1007,7 +1063,6 @@
             if (no) renderPaymentModalContent(no);
         }
 
-        // 수금 모달 열기 (상단에 회원번호, 회원명, 계약상태 표시)
         function openPaymentDetailModal(no) {
             let item = customerDataList.find(x => x.no === no);
             if (!item) return;
@@ -1101,7 +1156,6 @@
             unpaidInput.style.color = unpaidVal > 0 ? '#dc2626' : '#1e293b';
         }
 
-        // 해당 월 행 내용 초기화 (✕ 버튼 클릭)
         function clearModalRow(m) {
             let no = document.getElementById('p_edit_no').value;
             let monthStr = `${currentModalYear}-${String(m).padStart(2, '0')}`;
@@ -1109,9 +1163,9 @@
                 delete paymentDataMap[no][monthStr];
             }
             renderPaymentModalContent(no);
+            syncToGAS();
         }
 
-        // 하단 신규 등록 폼에서 즉시 등록
         function addQuickPaymentRow() {
             let no = document.getElementById('p_edit_no').value;
             let month = document.getElementById('p_new_month').value;
@@ -1137,7 +1191,6 @@
                 unpaid: Math.max(0, pAmt - paidAmt)
             };
 
-            // 입력 필드 초기화
             document.getElementById('p_new_paid_date').value = '';
             document.getElementById('p_new_paid_amt').value = '';
             document.getElementById('p_new_settle_date').value = '';
@@ -1145,6 +1198,7 @@
 
             renderPaymentModalContent(no);
             renderPaymentTable();
+            syncToGAS();
             alert(`${month}월 수납/정산 내역이 추가되었습니다.`);
         }
 
@@ -1183,7 +1237,8 @@
 
             renderPaymentTable();
             closeModal('paymentDetailModal');
-            alert("수금 및 연월별 정산 정보가 정상 저장되었습니다.");
+            syncToGAS();
+            alert("수금 및 연월별 정산 정보가 구글 시트에 정상 저장되었습니다.");
         }
 
         function openContractHistoryModal(no) {
@@ -1246,7 +1301,8 @@
 
             renderHistoryList(no);
             filterCustomerTable();
-            alert("새 계약 이력이 등록되었습니다.");
+            syncToGAS();
+            alert("새 계약 이력이 추가되었습니다.");
         }
 
         function deleteContractHistory(no, idx) {
@@ -1256,6 +1312,7 @@
             }
             renderHistoryList(no);
             filterCustomerTable();
+            syncToGAS();
         }
 
         function deleteSelectedCustomers() {
@@ -1271,6 +1328,7 @@
             updateSelectOptions();
             filterCustomerTable();
             updateKPIs();
+            syncToGAS();
             alert("선택한 고객 데이터가 삭제되었습니다.");
         }
 
@@ -1383,6 +1441,7 @@
             filterCustomerTable();
             updateKPIs();
             closeModal('detailModal');
+            syncToGAS();
             alert("고객 세부 내역이 수정되었습니다.");
         }
 
@@ -1395,6 +1454,7 @@
             filterCustomerTable();
             updateKPIs();
             closeModal('detailModal');
+            syncToGAS();
             alert("고객 정보가 삭제되었습니다.");
         }
 
@@ -1421,6 +1481,7 @@
             updateSelectOptions();
             filterCustomerTable();
             closeModal('customerModal');
+            syncToGAS();
             alert("신규 고객이 성공적으로 등록되었습니다.");
         }
 
