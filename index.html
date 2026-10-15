@@ -10,6 +10,10 @@
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <!-- Chart.js (차트 시각화) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Firebase SDK (Realtime Database 지원 버전) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     
     <style>
         :root {
@@ -140,16 +144,11 @@
         .btn-delete-x { background: transparent; border: none; color: #ef4444; font-size: 14px; font-weight: 800; cursor: pointer; padding: 2px 6px; border-radius: 4px; }
         .btn-delete-x:hover { background: #fee2e2; }
 
-        #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.7); display: none; justify-content: center; align-items: center; z-index: 2000; font-weight: 700; color: #2563eb; font-size: 16px; }
-
         #fileInput { display: none; }
         #paymentFileInput { display: none; }
     </style>
 </head>
 <body>
-
-    <!-- 동기화 로딩 오버레이 -->
-    <div id="loadingOverlay">구글 스프레드시트와 데이터를 동기화 중입니다...</div>
 
     <!-- 1. 신규 고객 수동 등록 모달 -->
     <div id="customerModal" class="modal-overlay">
@@ -514,7 +513,7 @@
                 </div>
             </div>
 
-            <!-- 3. [CMS > 수금관리] 뷰 (미정산금액 컬럼 추가) -->
+            <!-- 3. [CMS > 수금관리] 뷰 -->
             <div id="view-payment" class="view-section">
                 
                 <div class="filter-panel" style="grid-template-columns: repeat(6, 1fr) auto;">
@@ -587,12 +586,9 @@
                                     <th class="sortable" onclick="sortTable('manager', 'payment')">영업대표 <span class="sort-indicator" id="psort_manager"></span></th>
                                     <th class="text-right sortable" onclick="sortTable('amount', 'payment')">상품금액 <span class="sort-indicator" id="psort_amount"></span></th>
                                     <th class="text-right sortable" onclick="sortTable('commission', 'payment')">영업수수료 <span class="sort-indicator" id="psort_commission"></span></th>
-                                    <!-- 수납금액 (정산일 연동) -->
                                     <th class="text-right sortable" onclick="sortTable('paid', 'payment')">수납금액 <span style="font-size:10px; font-weight:normal; color:#64748b;">(정산일)</span> <span class="sort-indicator" id="psort_paid"></span></th>
-                                    <!-- 정산금액 (입금일 연동) -->
                                     <th class="text-right sortable" onclick="sortTable('settleAmount', 'payment')">정산금액 <span style="font-size:10px; font-weight:normal; color:#64748b;">(입금일)</span> <span class="sort-indicator" id="psort_settleAmount"></span></th>
                                     <th class="text-right sortable" onclick="sortTable('unpaid', 'payment')">미납금액 <span class="sort-indicator" id="psort_unpaid"></span></th>
-                                    <!-- 미정산금액 컬럼 추가 -->
                                     <th class="text-right sortable" onclick="sortTable('unsettledAmount', 'payment')">미정산금액 <span class="sort-indicator" id="psort_unsettledAmount"></span></th>
                                 </tr>
                             </thead>
@@ -635,7 +631,21 @@
     </div>
 
     <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbwaGkTHu1irC_C46B9PgA6bOLe_MSGaxA5wr27wf4_zhwMoz3SqtjfKzpU-G1IQeZTs/exec";
+        // 제출해주신 파이어베이스 설정값 입력
+        const firebaseConfig = {
+            apiKey: "AIzaSyCze7iBEAL91grPmpSOZ3PsSCXQF_ppCP4",
+            authDomain: "imu-cms.firebaseapp.com",
+            databaseURL: "https://imu-cms-default-rtdb.firebaseio.com", // Realtime Database 주소 자동 매칭
+            projectId: "imu-cms",
+            storageBucket: "imu-cms.firebasestorage.app",
+            messagingSenderId: "318783600327",
+            appId: "1:318783600327:web:319ae6148263cb386f70e2",
+            measurementId: "G-EB172CE88L"
+        };
+
+        // Firebase 초기화
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
         let customerDataList = [];
         let paymentDataMap = {}; 
@@ -646,59 +656,51 @@
         let currentSortAsc = true;
 
         window.addEventListener('DOMContentLoaded', () => {
-            loadDataFromGAS();
-        });
+            // 로컬스토리지 우선 복원 (통신 지연 시 즉시 렌더링)
+            let savedCust = localStorage.getItem('cms_cust_list');
+            let savedPay = localStorage.getItem('cms_pay_map');
+            let savedHist = localStorage.getItem('cms_hist_map');
 
-        function showLoading(show) {
-            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
-        }
+            if (savedCust) customerDataList = JSON.parse(savedCust);
+            if (savedPay) paymentDataMap = JSON.parse(savedPay);
+            if (savedHist) contractHistoryMap = JSON.parse(savedHist);
 
-        async function loadDataFromGAS() {
-            showLoading(true);
-            let controller = new AbortController();
-            let timeoutId = setTimeout(() => controller.abort(), 3000);
+            updateSelectOptions();
+            filterCustomerTable();
+            filterPaymentTable();
+            updateKPIs();
 
-            try {
-                let response = await fetch(GAS_URL, { signal: controller.signal });
-                clearTimeout(timeoutId);
+            // Firebase 실시간 동기화 감지 (누군가 데이터 등록/수정 시 다른 화면에도 1초만에 반영)
+            db.ref('cms_erp_data').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    customerDataList = data.customers || [];
+                    paymentDataMap = data.payments || {};
+                    contractHistoryMap = data.histories || {};
 
-                let result = await response.json();
-                if (result && result.status === 'success' && result.data) {
-                    customerDataList = result.data.customers || [];
-                    paymentDataMap = result.data.payments || {};
-                    contractHistoryMap = result.data.histories || {};
-
+                    saveLocalStorage();
                     updateSelectOptions();
                     filterCustomerTable();
                     filterPaymentTable();
                     updateKPIs();
                 }
-            } catch (err) {
-                console.warn("GAS 통신 타임아웃/로컬 모드 진행:", err);
-            } finally {
-                showLoading(false);
-            }
+            });
+        });
+
+        // 파이어베이스 및 로컬 동시 저장
+        function syncToFirebase() {
+            saveLocalStorage();
+            db.ref('cms_erp_data').set({
+                customers: customerDataList,
+                payments: paymentDataMap,
+                histories: contractHistoryMap
+            });
         }
 
-        async function syncToGAS() {
-            showLoading(true);
-            try {
-                let payload = {
-                    customers: customerDataList,
-                    payments: paymentDataMap,
-                    histories: contractHistoryMap
-                };
-                await fetch(GAS_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-            } catch (err) {
-                console.error("GAS 저장 실패:", err);
-            } finally {
-                showLoading(false);
-            }
+        function saveLocalStorage() {
+            localStorage.setItem('cms_cust_list', JSON.stringify(customerDataList));
+            localStorage.setItem('cms_pay_map', JSON.stringify(paymentDataMap));
+            localStorage.setItem('cms_hist_map', JSON.stringify(contractHistoryMap));
         }
 
         function toggleParent(el) {
@@ -932,7 +934,7 @@
                         updateSelectOptions();
                         filterCustomerTable();
                         updateKPIs();
-                        syncToGAS();
+                        syncToFirebase();
                         alert(`총 ${customerDataList.length}건의 고객 계약 정보가 자동 등록되었습니다.`);
                     }
                 } catch (err) {
@@ -943,7 +945,6 @@
             e.target.value = '';
         });
 
-        // 수금 결제 파일 업로드 (수납금액 & 정산일 연동)
         document.getElementById('paymentFileInput').addEventListener('change', function(e) {
             let file = e.target.files[0];
             if (!file) return;
@@ -960,7 +961,7 @@
                     rawData.forEach(row => {
                         let no = String(row['회원번호'] || '').trim();
                         let paidVal = parseInt(row['수납금액']) || 0;
-                        let settleDateVal = String(row['정산일'] || row['결제일'] || '').trim().split('T')[0]; // 정산일
+                        let settleDateVal = String(row['정산일'] || row['결제일'] || '').trim().split('T')[0];
                         let billingMonth = String(row['청구월'] || '').replace('/', '-').trim();
 
                         if (no) {
@@ -973,7 +974,7 @@
                                 amount: parseInt(row['공급가액']) || existing.amount || 0,
                                 commission: existing.commission || 0,
                                 paid: paidVal,
-                                paidDate: settleDateVal, // 수납금액에 정산일 매칭
+                                paidDate: settleDateVal, // 수납금액에 정산일 연동
                                 settle: existing.settle || 0,
                                 settleDate: existing.settleDate || '',
                                 unpaid: parseInt(row['미납금액']) || 0
@@ -983,7 +984,7 @@
                     });
 
                     renderPaymentTable();
-                    syncToGAS();
+                    syncToFirebase();
                     alert(`총 ${matchCount}건의 수금 내역(수납금액 & 정산일)이 매칭 업로드되었습니다.`);
                 } catch (err) {
                     alert("수금 엑셀 업로드 실패: " + err);
@@ -1036,7 +1037,6 @@
             document.getElementById('selectAllCustomer').checked = false;
         }
 
-        // 연간 요약 계산 (수납, 정산, 미납, 미정산)
         function getYearlySummary(no, year) {
             let userPayMap = paymentDataMap[no] || {};
             let sumPaid = 0, sumSettle = 0, sumUnpaid = 0;
@@ -1190,17 +1190,16 @@
                 delete paymentDataMap[no][monthStr];
             }
             renderPaymentModalContent(no);
-            syncToGAS();
+            syncToFirebase();
         }
 
-        // 수동 정산금액(입금일) 신규 추가 등록
         function addQuickPaymentRow() {
             let no = document.getElementById('p_edit_no').value;
             let month = document.getElementById('p_new_month').value;
-            let paidDate = document.getElementById('p_new_paid_date').value; // 정산일자
-            let paidAmt = parseInt(document.getElementById('p_new_paid_amt').value) || 0; // 수납금액
-            let settleDate = document.getElementById('p_new_settle_date').value; // 입금일자
-            let settleAmt = parseInt(document.getElementById('p_new_settle_amt').value) || 0; // 정산금액
+            let paidDate = document.getElementById('p_new_paid_date').value;
+            let paidAmt = parseInt(document.getElementById('p_new_paid_amt').value) || 0;
+            let settleDate = document.getElementById('p_new_settle_date').value;
+            let settleAmt = parseInt(document.getElementById('p_new_settle_amt').value) || 0;
 
             if (!no) return;
             if (!paymentDataMap[no]) paymentDataMap[no] = {};
@@ -1226,7 +1225,7 @@
 
             renderPaymentModalContent(no);
             renderPaymentTable();
-            syncToGAS();
+            syncToFirebase();
             alert(`${month}월 수납/정산 내역이 추가되었습니다.`);
         }
 
@@ -1265,8 +1264,8 @@
 
             renderPaymentTable();
             closeModal('paymentDetailModal');
-            syncToGAS();
-            alert("수금 및 연월별 정산 정보가 구글 시트에 정상 저장되었습니다.");
+            syncToFirebase();
+            alert("수금 및 연월별 정산 정보가 저장되었습니다.");
         }
 
         function openContractHistoryModal(no) {
@@ -1329,7 +1328,7 @@
 
             renderHistoryList(no);
             filterCustomerTable();
-            syncToGAS();
+            syncToFirebase();
             alert("새 계약 이력이 추가되었습니다.");
         }
 
@@ -1340,7 +1339,7 @@
             }
             renderHistoryList(no);
             filterCustomerTable();
-            syncToGAS();
+            syncToFirebase();
         }
 
         function deleteSelectedCustomers() {
@@ -1356,7 +1355,7 @@
             updateSelectOptions();
             filterCustomerTable();
             updateKPIs();
-            syncToGAS();
+            syncToFirebase();
             alert("선택한 고객 데이터가 삭제되었습니다.");
         }
 
@@ -1470,7 +1469,7 @@
             filterCustomerTable();
             updateKPIs();
             closeModal('detailModal');
-            syncToGAS();
+            syncToFirebase();
             alert("고객 세부 내역이 수정되었습니다.");
         }
 
@@ -1483,7 +1482,7 @@
             filterCustomerTable();
             updateKPIs();
             closeModal('detailModal');
-            syncToGAS();
+            syncToFirebase();
             alert("고객 정보가 삭제되었습니다.");
         }
 
@@ -1510,7 +1509,7 @@
             updateSelectOptions();
             filterCustomerTable();
             closeModal('customerModal');
-            syncToGAS();
+            syncToFirebase();
             alert("신규 고객이 성공적으로 등록되었습니다.");
         }
 
