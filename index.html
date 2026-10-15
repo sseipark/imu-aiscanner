@@ -58,7 +58,7 @@
         .header-title { font-size: 18px; font-weight: 800; color: #0f172a; display: flex; align-items: center; }
         .header-actions { display: flex; gap: 10px; align-items: center; }
 
-        .search-box { display: flex; align-items: center; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 2px 10px; width: 280px; }
+        .search-box { display: flex; align-items: center; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 2px 10px; width: 320px; }
         .search-box input { border: none; background: transparent; outline: none; font-size: 13px; width: 100%; padding: 6px 4px; }
 
         .btn { padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; display: flex; align-items: center; }
@@ -75,13 +75,13 @@
         .view-section { display: none; }
         .view-section.active { display: block; }
 
-        /* 조합 검색 필터 패널 스타일 (4열 그리드 확장) */
-        .filter-panel { background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; padding: 16px 20px; margin-bottom: 16px; display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr auto; gap: 12px; align-items: center; }
-        .filter-group { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #475569; }
+        /* 조합 검색 필터 패널 스타일 */
+        .filter-panel { background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; padding: 16px 20px; margin-bottom: 16px; display: grid; grid-template-columns: 1.1fr 1fr 1fr 1fr 1fr auto; gap: 10px; align-items: center; }
+        .filter-group { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #475569; }
         .filter-group label { white-space: nowrap; }
-        .filter-options { display: flex; gap: 10px; align-items: center; }
-        .filter-options label { font-weight: 500; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 3px; }
-        .filter-select { padding: 6px 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; background: #ffffff; width: 100%; }
+        .filter-options { display: flex; gap: 8px; align-items: center; }
+        .filter-options label { font-weight: 500; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 2px; }
+        .filter-select { padding: 6px 8px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; background: #ffffff; width: 100%; }
 
         .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
         .kpi-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 18px 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
@@ -100,6 +100,7 @@
         th { background-color: #f8fafc; color: var(--text-sub); font-weight: 600; position: sticky; top: 0; z-index: 1; }
         th.sortable { cursor: pointer; user-select: none; }
         th.sortable:hover { background-color: #e2e8f0; color: #0f172a; }
+        .sort-indicator { font-size: 11px; margin-left: 2px; color: #2563eb; }
         tr:hover { background-color: #f1f5f9; }
         .text-right { text-align: right; }
         .text-center { text-align: center; }
@@ -143,12 +144,14 @@
                 </div>
                 <div class="form-group"><label>청구시작일</label><input type="date" id="m_start"></div>
             </div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div class="form-group"><label>상품금액합(원)</label><input type="number" id="m_amount" placeholder="33000"></div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                <div class="form-group"><label>상품금액(원)</label><input type="number" id="m_amount" placeholder="33000"></div>
+                <div class="form-group"><label>영업수수료(원)</label><input type="number" id="m_commission" placeholder="5000"></div>
                 <div class="form-group"><label>회원구분</label><input type="text" id="m_type" placeholder="예: ASP_서버이용료"></div>
             </div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
                 <div class="form-group"><label>대리점</label><input type="text" id="m_agency" placeholder="예: 메트로넷"></div>
+                <div class="form-group"><label>가맹점</label><input type="text" id="m_store" placeholder="예: 광명점"></div>
                 <div class="form-group"><label>영업대표</label><input type="text" id="m_manager" placeholder="예: 오성현L"></div>
             </div>
             <div style="display:flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
@@ -178,12 +181,14 @@
                 </div>
                 <div class="form-group"><label>청구시작일</label><input type="text" id="edit_start" placeholder="YYYY-MM-DD"></div>
             </div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div class="form-group"><label>상품금액합(원)</label><input type="number" id="edit_amount"></div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                <div class="form-group"><label>상품금액(원)</label><input type="number" id="edit_amount"></div>
+                <div class="form-group"><label>영업수수료(원)</label><input type="number" id="edit_commission"></div>
                 <div class="form-group"><label>회원구분</label><input type="text" id="edit_type"></div>
             </div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
                 <div class="form-group"><label>대리점</label><input type="text" id="edit_agency"></div>
+                <div class="form-group"><label>가맹점</label><input type="text" id="edit_store"></div>
                 <div class="form-group"><label>영업대표</label><input type="text" id="edit_manager"></div>
             </div>
             <div style="display:flex; justify-content: space-between; align-items:center; margin-top: 20px;">
@@ -196,11 +201,11 @@
         </div>
     </div>
 
-    <!-- 3. 수금 관리 비고 및 수동 설정 모달 -->
+    <!-- 3. 수금 관리 비고 및 수동 설정 모달 (정산금액 필드 추가) -->
     <div id="paymentDetailModal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-header">
-                <span>수금 상세 관리 및 비고 등록</span>
+                <span>수금 및 정산 상세 관리</span>
                 <span style="cursor:pointer;" onclick="closeModal('paymentDetailModal')">✕</span>
             </div>
             <input type="hidden" id="p_edit_idx" />
@@ -208,9 +213,10 @@
                 <div class="form-group"><label>회원번호</label><input type="text" id="p_edit_no" readonly style="background:#f1f5f9; font-weight:bold;"></div>
                 <div class="form-group"><label>회원명</label><input type="text" id="p_edit_name" readonly style="background:#f1f5f9; font-weight:bold;"></div>
             </div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div class="form-group"><label>상품금액(청구금액)</label><input type="number" id="p_edit_product" readonly style="background:#f1f5f9; font-weight:bold;"></div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                <div class="form-group"><label>상품금액</label><input type="number" id="p_edit_product" readonly style="background:#f1f5f9; font-weight:bold;"></div>
                 <div class="form-group"><label>수납금액</label><input type="number" id="p_edit_paid" oninput="calcUnpaid()"></div>
+                <div class="form-group"><label>정산금액</label><input type="number" id="p_edit_settle_amt" placeholder="0"></div>
             </div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <div class="form-group"><label>미납금액</label><input type="number" id="p_edit_unpaid" readonly style="background:#fef2f2; color:#dc2626; font-weight:bold;"></div>
@@ -275,8 +281,6 @@
                     <input type="text" id="searchInput" onkeyup="filterCustomerTable()" placeholder="회원번호, 회원명, 전화번호 검색..." />
                 </div>
                 <input type="file" id="fileInput" accept=".xlsx, .xls" />
-                <button class="btn btn-excel" onclick="document.getElementById('fileInput').click()">엑셀 업로드</button>
-                <button class="btn btn-primary" onclick="openModal('customerModal')">+ 고객 수동 등록</button>
             </div>
         </header>
 
@@ -284,7 +288,7 @@
             <!-- 1. [CMS > 고객관리] 뷰 -->
             <div id="view-customer" class="view-section active">
                 
-                <!-- 조합 검색 필터 패널 (계약상태 + 회원구분 + 대리점 + 영업대표) -->
+                <!-- 조합 검색 필터 패널 -->
                 <div class="filter-panel">
                     <div class="filter-group">
                         <label>계약상태:</label>
@@ -308,6 +312,12 @@
                         </select>
                     </div>
                     <div class="filter-group">
+                        <label>가맹점:</label>
+                        <select id="filterStoreSelect" class="filter-select" onchange="filterCustomerTable()">
+                            <option value="ALL">전체 가맹점</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
                         <label>영업대표:</label>
                         <select id="filterManagerSelect" class="filter-select" onchange="filterCustomerTable()">
                             <option value="ALL">전체 영업대표</option>
@@ -322,8 +332,10 @@
                     <h3>
                         <span>가맹점 고객 세부정보 내역</span>
                         <div class="card-actions">
-                            <button class="btn btn-danger" style="font-size: 12px; padding: 4px 10px;" onclick="deleteSelectedCustomers()">선택 삭제</button>
-                            <button class="btn btn-outline" style="font-size: 12px; padding: 4px 10px;" onclick="downloadSelectedExcel()">선택 엑셀 다운로드</button>
+                            <button class="btn btn-primary" style="font-size: 12px; padding: 6px 12px;" onclick="openModal('customerModal')">등록</button>
+                            <button class="btn btn-danger" style="font-size: 12px; padding: 6px 12px;" onclick="deleteSelectedCustomers()">삭제</button>
+                            <button class="btn btn-excel" style="font-size: 12px; padding: 6px 12px;" onclick="document.getElementById('fileInput').click()">대량업로드</button>
+                            <button class="btn btn-outline" style="font-size: 12px; padding: 6px 12px;" onclick="downloadSelectedExcel()">엑셀 다운로드</button>
                         </div>
                     </h3>
                     <div class="table-container">
@@ -331,15 +343,17 @@
                             <thead>
                                 <tr>
                                     <th class="text-center" style="width:40px;"><input type="checkbox" id="selectAllCustomer" onclick="toggleSelectAllCustomer(this)" /></th>
-                                    <th class="text-center">NO.</th>
-                                    <th class="sortable" onclick="sortCustomerTableByNo()">회원번호 <span id="sortOrderIcon">↕</span></th>
-                                    <th>회원명</th>
-                                    <th>납부자 휴대전화</th>
-                                    <th>계약상태<br><span style="font-size:10px; font-weight:normal; color:#64748b;">(청구시작일)</span></th>
-                                    <th class="text-right">상품금액합</th>
-                                    <th>회원구분</th>
-                                    <th>대리점</th>
-                                    <th>영업대표</th>
+                                    <th class="text-center sortable" onclick="sortTable('idx', 'customer')">NO. <span class="sort-indicator" id="csort_idx"></span></th>
+                                    <th class="sortable" onclick="sortTable('no', 'customer')">회원번호 <span class="sort-indicator" id="csort_no"></span></th>
+                                    <th class="sortable" onclick="sortTable('name', 'customer')">회원명 <span class="sort-indicator" id="csort_name"></span></th>
+                                    <th class="sortable" onclick="sortTable('phone', 'customer')">납부자 휴대전화 <span class="sort-indicator" id="csort_phone"></span></th>
+                                    <th class="sortable" onclick="sortTable('status', 'customer')">계약상태<br><span style="font-size:10px; font-weight:normal; color:#64748b;">(청구시작일)</span> <span class="sort-indicator" id="csort_status"></span></th>
+                                    <th class="text-right sortable" onclick="sortTable('amount', 'customer')">상품금액 <span class="sort-indicator" id="csort_amount"></span></th>
+                                    <th class="text-right sortable" onclick="sortTable('commission', 'customer')">영업수수료 <span class="sort-indicator" id="csort_commission"></span></th>
+                                    <th class="sortable" onclick="sortTable('type', 'customer')">회원구분 <span class="sort-indicator" id="csort_type"></span></th>
+                                    <th class="sortable" onclick="sortTable('agency', 'customer')">대리점 <span class="sort-indicator" id="csort_agency"></span></th>
+                                    <th class="sortable" onclick="sortTable('store', 'customer')">가맹점 <span class="sort-indicator" id="csort_store"></span></th>
+                                    <th class="sortable" onclick="sortTable('manager', 'customer')">영업대표 <span class="sort-indicator" id="csort_manager"></span></th>
                                     <th class="text-center">관련서류</th>
                                     <th class="text-center">상담내역</th>
                                 </tr>
@@ -360,27 +374,31 @@
                 </div>
             </div>
 
-            <!-- 3. [CMS > 수금관리] 뷰 -->
+            <!-- 3. [CMS > 수금관리] 뷰 (영업수수료 및 정산금액 컬럼 추가) -->
             <div id="view-payment" class="view-section">
                 <div class="content-card">
                     <h3>
                         <span>월별 수금 및 입금 관리 내역</span>
                         <div class="card-actions">
-                            <button class="btn btn-outline" style="font-size: 12px; padding: 4px 10px;" onclick="downloadPaymentExcel()">엑셀 다운로드</button>
+                            <button class="btn btn-outline" style="font-size: 12px; padding: 6px 12px;" onclick="downloadPaymentExcel()">엑셀 다운로드</button>
                         </div>
                     </h3>
                     <div class="table-container">
                         <table id="paymentTable">
                             <thead>
                                 <tr>
-                                    <th class="text-center">NO.</th>
-                                    <th>회원번호</th>
-                                    <th>회원명</th>
-                                    <th>계약상태</th>
-                                    <th class="text-right">상품금액</th>
-                                    <th class="text-right">수납금액</th>
-                                    <th class="text-right">미납금액</th>
-                                    <th class="text-center">정산일</th>
+                                    <th class="text-center sortable" onclick="sortTable('idx', 'payment')">NO. <span class="sort-indicator" id="psort_idx"></span></th>
+                                    <th class="sortable" onclick="sortTable('no', 'payment')">회원번호 <span class="sort-indicator" id="psort_no"></span></th>
+                                    <th class="sortable" onclick="sortTable('name', 'payment')">회원명 <span class="sort-indicator" id="psort_name"></span></th>
+                                    <th class="sortable" onclick="sortTable('status', 'payment')">계약상태 <span class="sort-indicator" id="psort_status"></span></th>
+                                    <th class="sortable" onclick="sortTable('agency', 'payment')">대리점 <span class="sort-indicator" id="psort_agency"></span></th>
+                                    <th class="sortable" onclick="sortTable('store', 'payment')">가맹점 <span class="sort-indicator" id="psort_store"></span></th>
+                                    <th class="sortable" onclick="sortTable('manager', 'payment')">영업대표 <span class="sort-indicator" id="psort_manager"></span></th>
+                                    <th class="text-right sortable" onclick="sortTable('amount', 'payment')">상품금액 <span class="sort-indicator" id="psort_amount"></span></th>
+                                    <th class="text-right sortable" onclick="sortTable('commission', 'payment')">영업수수료 <span class="sort-indicator" id="psort_commission"></span></th>
+                                    <th class="text-right sortable" onclick="sortTable('paid', 'payment')">수납금액 <span style="font-size:10px; font-weight:normal; color:#64748b;">(정산일)</span> <span class="sort-indicator" id="psort_paid"></span></th>
+                                    <th class="text-right sortable" onclick="sortTable('settleAmount', 'payment')">정산금액 <span class="sort-indicator" id="psort_settleAmount"></span></th>
+                                    <th class="text-right sortable" onclick="sortTable('unpaid', 'payment')">미납금액 <span class="sort-indicator" id="psort_unpaid"></span></th>
                                     <th class="text-center">비고 / 상세</th>
                                 </tr>
                             </thead>
@@ -425,7 +443,9 @@
     <script>
         let customerDataList = [];
         let paymentDataMap = {}; 
-        let customerSortAsc = true;
+        
+        let currentSortKey = '';
+        let currentSortAsc = true;
 
         function toggleParent(el) {
             el.classList.toggle('open');
@@ -447,12 +467,58 @@
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-        // 조합 검색 필터링 (검색어 + 계약상태 + 회원구분 + 대리점 + 영업대표)
+        // 전 컬럼 클릭 정렬 함수
+        function sortTable(key, type) {
+            if (currentSortKey === key) {
+                currentSortAsc = !currentSortAsc;
+            } else {
+                currentSortKey = key;
+                currentSortAsc = true;
+            }
+
+            document.querySelectorAll('.sort-indicator').forEach(el => el.innerText = '');
+
+            let prefix = type === 'customer' ? 'csort_' : 'psort_';
+            let indicator = document.getElementById(prefix + key);
+            if (indicator) {
+                indicator.innerText = currentSortAsc ? ' ▲' : ' ▼';
+            }
+
+            customerDataList.sort((a, b) => {
+                let valA = a[key] !== undefined ? a[key] : '';
+                let valB = b[key] !== undefined ? b[key] : '';
+
+                if (type === 'payment') {
+                    let payA = paymentDataMap[a.no] || { paid: 0, settleAmount: 0 };
+                    let payB = paymentDataMap[b.no] || { paid: 0, settleAmount: 0 };
+
+                    if (key === 'paid') valA = payA.paid, valB = payB.paid;
+                    else if (key === 'settleAmount') valA = payA.settleAmount || 0, valB = payB.settleAmount || 0;
+                    else if (key === 'unpaid') valA = Math.max(0, a.amount - payA.paid), valB = Math.max(0, b.amount - payB.paid);
+                }
+
+                if (typeof valA === 'number' && typeof valB === 'number') {
+                    return currentSortAsc ? valA - valB : valB - valA;
+                }
+
+                valA = String(valA);
+                valB = String(valB);
+                return currentSortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            });
+
+            if (type === 'customer') {
+                filterCustomerTable();
+            } else {
+                renderPaymentTable();
+            }
+        }
+
         function filterCustomerTable() {
             let query = document.getElementById('searchInput').value.toLowerCase().trim();
             let selectedStatus = document.querySelector('input[name="filterStatus"]:checked').value;
             let selectedType = document.getElementById('filterTypeSelect').value;
             let selectedAgency = document.getElementById('filterAgencySelect').value;
+            let selectedStore = document.getElementById('filterStoreSelect').value;
             let selectedManager = document.getElementById('filterManagerSelect').value;
 
             let filtered = customerDataList.filter(item => {
@@ -460,14 +526,16 @@
                                     (item.name || '').toLowerCase().includes(query) ||
                                     (item.phone || '').toLowerCase().includes(query) ||
                                     (item.agency || '').toLowerCase().includes(query) ||
+                                    (item.store || '').toLowerCase().includes(query) ||
                                     (item.manager || '').toLowerCase().includes(query);
 
                 let matchesStatus = (selectedStatus === 'ALL') || (item.status === selectedStatus);
                 let matchesType = (selectedType === 'ALL') || (item.type === selectedType);
                 let matchesAgency = (selectedAgency === 'ALL') || (item.agency === selectedAgency);
+                let matchesStore = (selectedStore === 'ALL') || (item.store === selectedStore);
                 let matchesManager = (selectedManager === 'ALL') || (item.manager === selectedManager);
 
-                return matchesSearch && matchesStatus && matchesType && matchesAgency && matchesManager;
+                return matchesSearch && matchesStatus && matchesType && matchesAgency && matchesStore && matchesManager;
             });
 
             renderCustomerTable(filtered);
@@ -478,13 +546,12 @@
             document.querySelector('input[name="filterStatus"][value="ALL"]').checked = true;
             document.getElementById('filterTypeSelect').value = 'ALL';
             document.getElementById('filterAgencySelect').value = 'ALL';
+            document.getElementById('filterStoreSelect').value = 'ALL';
             document.getElementById('filterManagerSelect').value = 'ALL';
             filterCustomerTable();
         }
 
-        // 드롭다운 옵션 동적 갱신 (회원구분, 대리점, 영업대표)
         function updateSelectOptions() {
-            // 회원구분
             let typeSelect = document.getElementById('filterTypeSelect');
             let currentType = typeSelect.value;
             let types = Array.from(new Set(customerDataList.map(i => i.type).filter(Boolean)));
@@ -493,7 +560,6 @@
             typeSelect.innerHTML = typeHtml;
             typeSelect.value = types.includes(currentType) ? currentType : 'ALL';
 
-            // 대리점
             let agencySelect = document.getElementById('filterAgencySelect');
             let currentAgency = agencySelect.value;
             let agencies = Array.from(new Set(customerDataList.map(i => i.agency).filter(a => a && a !== '-')));
@@ -502,7 +568,14 @@
             agencySelect.innerHTML = agencyHtml;
             agencySelect.value = agencies.includes(currentAgency) ? currentAgency : 'ALL';
 
-            // 영업대표
+            let storeSelect = document.getElementById('filterStoreSelect');
+            let currentStore = storeSelect.value;
+            let stores = Array.from(new Set(customerDataList.map(i => i.store).filter(s => s && s !== '-')));
+            let storeHtml = '<option value="ALL">전체 가맹점</option>';
+            stores.forEach(s => { storeHtml += `<option value="${s}">${s}</option>`; });
+            storeSelect.innerHTML = storeHtml;
+            storeSelect.value = stores.includes(currentStore) ? currentStore : 'ALL';
+
             let managerSelect = document.getElementById('filterManagerSelect');
             let currentManager = managerSelect.value;
             let managers = Array.from(new Set(customerDataList.map(i => i.manager).filter(m => m && m !== '-')));
@@ -510,19 +583,6 @@
             managers.forEach(m => { managerHtml += `<option value="${m}">${m}</option>`; });
             managerSelect.innerHTML = managerHtml;
             managerSelect.value = managers.includes(currentManager) ? currentManager : 'ALL';
-        }
-
-        function sortCustomerTableByNo() {
-            customerSortAsc = !customerSortAsc;
-            document.getElementById('sortOrderIcon').innerText = customerSortAsc ? '▲' : '▼';
-            
-            customerDataList.sort((a, b) => {
-                let noA = String(a.no || '');
-                let noB = String(b.no || '');
-                return customerSortAsc ? noA.localeCompare(noB) : noB.localeCompare(noA);
-            });
-
-            filterCustomerTable();
         }
 
         function toggleSelectAllCustomer(master) {
@@ -544,15 +604,17 @@
 
                     if (rawData.length > 0 && rawData[0]['회원번호'] !== undefined && rawData[0]['회원명'] !== undefined) {
                         customerDataList = rawData.map((row, idx) => ({
-                            idx: idx,
+                            idx: idx + 1,
                             no: String(row['회원번호'] || ''),
                             name: String(row['회원명'] || ''),
                             phone: String(row['납부자 휴대전화'] || ''),
                             status: String(row['계약상태'] || '사용'),
                             startDate: String(row['청구시작일'] || '').split('T')[0],
-                            amount: parseInt(row['상품금액합']) || 0,
+                            amount: parseInt(row['상품금액합'] || row['상품금액']) || 0,
+                            commission: parseInt(row['영업수수료']) || 0,
                             type: String(row['회원구분'] || '미지정'),
                             agency: String(row['대리점'] || '-'),
+                            store: String(row['가맹점'] || '-'),
                             manager: String(row['영업대표'] || '-')
                         }));
 
@@ -566,6 +628,7 @@
                             if (no) {
                                 paymentDataMap[no] = {
                                     paid: parseInt(row['수납금액']) || 0,
+                                    settleAmount: parseInt(row['정산금액']) || 0,
                                     date: String(row['정산일'] || '').split('T')[0],
                                     memo: String(row['비고'] || '')
                                 };
@@ -590,7 +653,7 @@
                 let statusBadge = item.status === '사용' ? '<span class="badge-status badge-use">사용</span>' : '<span class="badge-status badge-stop">'+item.status+'</span>';
                 tbody += `<tr>
                     <td class="text-center"><input type="checkbox" class="cust-check" value="${item.idx}" /></td>
-                    <td class="text-center">${index + 1}</td>
+                    <td class="text-center">${item.idx}</td>
                     <td style="font-weight:600; color:#2563eb;">${item.no}</td>
                     <td>
                         <div style="font-weight:700;">${item.name}</div>
@@ -602,8 +665,10 @@
                         <div class="sub-text">(${item.startDate || '-'})</div>
                     </td>
                     <td class="text-right" style="font-weight:700;">${item.amount.toLocaleString()} 원</td>
+                    <td class="text-right" style="color:#2563eb; font-weight:600;">${(item.commission || 0).toLocaleString()} 원</td>
                     <td>${item.type}</td>
                     <td>${item.agency || '-'}</td>
+                    <td>${item.store || '-'}</td>
                     <td>${item.manager || '-'}</td>
                     <td class="text-center"><button class="btn-action" onclick="alert('서류 등록 기능 준비 중')">서류등록</button></td>
                     <td class="text-center"><button class="btn-action" onclick="alert('상담 내역 기능 준비 중')">상담내역</button></td>
@@ -613,23 +678,33 @@
             document.getElementById('selectAllCustomer').checked = false;
         }
 
+        // 수금 관리 렌더링 (상품금액 뒤 영업수수료 연동, 수납금액 뒤 정산금액 연동)
         function renderPaymentTable() {
             let tbody = "";
             customerDataList.forEach((item, index) => {
-                let payInfo = paymentDataMap[item.no] || { paid: 0, date: '', memo: '' };
+                let payInfo = paymentDataMap[item.no] || { paid: 0, settleAmount: 0, date: '', memo: '' };
                 let paidAmt = payInfo.paid;
+                let settleAmt = payInfo.settleAmount || 0;
                 let unpaidAmt = Math.max(0, item.amount - paidAmt);
                 let statusBadge = item.status === '사용' ? '<span class="badge-status badge-use">사용</span>' : '<span class="badge-status badge-stop">'+item.status+'</span>';
+
+                let datePrefix = payInfo.date ? `<span style="font-size:11px; color:#64748b; margin-right:4px;">(${payInfo.date})</span>` : '';
 
                 tbody += `<tr>
                     <td class="text-center">${index + 1}</td>
                     <td style="font-weight:600; color:#2563eb;">${item.no}</td>
                     <td style="font-weight:700;">${item.name}</td>
                     <td>${statusBadge}</td>
+                    <td>${item.agency || '-'}</td>
+                    <td>${item.store || '-'}</td>
+                    <td>${item.manager || '-'}</td>
                     <td class="text-right">${item.amount.toLocaleString()} 원</td>
-                    <td class="text-right" style="color:#2563eb; font-weight:700;">${paidAmt.toLocaleString()} 원</td>
+                    <td class="text-right" style="color:#2563eb; font-weight:600;">${(item.commission || 0).toLocaleString()} 원</td>
+                    <td class="text-right" style="color:#2563eb; font-weight:700;">
+                        ${datePrefix}${paidAmt.toLocaleString()} 원
+                    </td>
+                    <td class="text-right" style="color:#059669; font-weight:700;">${settleAmt.toLocaleString()} 원</td>
                     <td class="text-right" style="color:${unpaidAmt > 0 ? '#dc2626' : '#059669'}; font-weight:700;">${unpaidAmt.toLocaleString()} 원</td>
-                    <td class="text-center">${payInfo.date || '-'}</td>
                     <td class="text-center">
                         <button class="btn-action" onclick="openPaymentDetailModal('${item.no}')">비고 / 상세</button>
                     </td>
@@ -666,14 +741,17 @@
             }
 
             let excelRows = exportData.map(item => ({
+                'NO.': item.idx,
                 '회원번호': item.no,
                 '회원명': item.name,
                 '납부자 휴대전화': item.phone,
                 '계약상태': item.status,
                 '청구시작일': item.startDate,
-                '상품금액합': item.amount,
+                '상품금액': item.amount,
+                '영업수수료': item.commission || 0,
                 '회원구분': item.type,
                 '대리점': item.agency || '-',
+                '가맹점': item.store || '-',
                 '영업대표': item.manager || '-'
             }));
 
@@ -690,15 +768,20 @@
             }
 
             let excelRows = customerDataList.map(item => {
-                let payInfo = paymentDataMap[item.no] || { paid: 0, date: '', memo: '' };
+                let payInfo = paymentDataMap[item.no] || { paid: 0, settleAmount: 0, date: '', memo: '' };
                 return {
                     '회원번호': item.no,
                     '회원명': item.name,
                     '계약상태': item.status,
+                    '대리점': item.agency || '-',
+                    '가맹점': item.store || '-',
+                    '영업대표': item.manager || '-',
                     '상품금액': item.amount,
+                    '영업수수료': item.commission || 0,
                     '수납금액': payInfo.paid,
-                    '미납금액': Math.max(0, item.amount - payInfo.paid),
                     '정산일': payInfo.date,
+                    '정산금액': payInfo.settleAmount || 0,
+                    '미납금액': Math.max(0, item.amount - payInfo.paid),
                     '비고': payInfo.memo
                 };
             });
@@ -713,12 +796,13 @@
             let item = customerDataList.find(x => x.no === no);
             if (!item) return;
 
-            let payInfo = paymentDataMap[no] || { paid: 0, date: '', memo: '' };
+            let payInfo = paymentDataMap[no] || { paid: 0, settleAmount: 0, date: '', memo: '' };
 
             document.getElementById('p_edit_no').value = item.no;
             document.getElementById('p_edit_name').value = item.name;
             document.getElementById('p_edit_product').value = item.amount;
             document.getElementById('p_edit_paid').value = payInfo.paid;
+            document.getElementById('p_edit_settle_amt').value = payInfo.settleAmount || 0;
             document.getElementById('p_edit_unpaid').value = Math.max(0, item.amount - payInfo.paid);
             document.getElementById('p_edit_date').value = payInfo.date;
             document.getElementById('p_edit_memo').value = payInfo.memo;
@@ -735,13 +819,14 @@
         function savePaymentDetail() {
             let no = document.getElementById('p_edit_no').value;
             let paid = parseInt(document.getElementById('p_edit_paid').value) || 0;
+            let settleAmt = parseInt(document.getElementById('p_edit_settle_amt').value) || 0;
             let date = document.getElementById('p_edit_date').value;
             let memo = document.getElementById('p_edit_memo').value.trim();
 
-            paymentDataMap[no] = { paid: paid, date: date, memo: memo };
+            paymentDataMap[no] = { paid: paid, settleAmount: settleAmt, date: date, memo: memo };
             renderPaymentTable();
             closeModal('paymentDetailModal');
-            alert("수금 및 비고 내역이 저장되었습니다.");
+            alert("수금 및 정산 내역이 저장되었습니다.");
         }
 
         function deletePaymentItem() {
@@ -765,8 +850,10 @@
             document.getElementById('edit_status').value = item.status;
             document.getElementById('edit_start').value = item.startDate;
             document.getElementById('edit_amount').value = item.amount;
+            document.getElementById('edit_commission').value = item.commission || 0;
             document.getElementById('edit_type').value = item.type;
             document.getElementById('edit_agency').value = item.agency || '-';
+            document.getElementById('edit_store').value = item.store || '-';
             document.getElementById('edit_manager').value = item.manager || '-';
 
             openModal('detailModal');
@@ -782,8 +869,10 @@
             item.status = document.getElementById('edit_status').value;
             item.startDate = document.getElementById('edit_start').value.trim();
             item.amount = parseInt(document.getElementById('edit_amount').value) || 0;
+            item.commission = parseInt(document.getElementById('edit_commission').value) || 0;
             item.type = document.getElementById('edit_type').value.trim();
             item.agency = document.getElementById('edit_agency').value.trim();
+            item.store = document.getElementById('edit_store').value.trim();
             item.manager = document.getElementById('edit_manager').value.trim();
 
             updateSelectOptions();
@@ -818,8 +907,10 @@
                 status: document.getElementById('m_status').value,
                 startDate: document.getElementById('m_start').value,
                 amount: parseInt(document.getElementById('m_amount').value) || 0,
+                commission: parseInt(document.getElementById('m_commission').value) || 0,
                 type: document.getElementById('m_type').value.trim() || '미지정',
                 agency: document.getElementById('m_agency').value.trim() || '-',
+                store: document.getElementById('m_store').value.trim() || '-',
                 manager: document.getElementById('m_manager').value.trim() || '-'
             });
 
