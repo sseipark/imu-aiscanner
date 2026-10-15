@@ -76,7 +76,7 @@
         .view-section.active { display: block; }
 
         /* 조합 검색 필터 패널 스타일 */
-        .filter-panel { background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; padding: 16px 20px; margin-bottom: 16px; display: grid; grid-template-columns: 1.1fr 1fr 1fr 1fr 1fr auto; gap: 10px; align-items: center; }
+        .filter-panel { background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; padding: 16px 20px; margin-bottom: 16px; display: grid; grid-template-columns: repeat(6, 1fr) auto; gap: 10px; align-items: center; }
         .filter-group { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #475569; }
         .filter-group label { white-space: nowrap; }
         .filter-options { display: flex; gap: 8px; align-items: center; }
@@ -305,8 +305,8 @@
                             <th class="text-center" style="width:90px;">월</th>
                             <th class="text-right">상품금액</th>
                             <th class="text-right">영업수수료</th>
-                            <th class="text-center" style="width:210px;">수납금액 (입금일 / 금액)</th>
-                            <th class="text-center" style="width:210px;">정산금액 (정산일 / 금액)</th>
+                            <th class="text-center" style="width:210px;">수납금액 (정산일 / 금액)</th>
+                            <th class="text-center" style="width:210px;">정산금액 (입금일 / 금액)</th>
                             <th class="text-right">미납금액</th>
                             <th class="text-center" style="width:50px;">삭제</th>
                         </tr>
@@ -327,8 +327,8 @@
             </div>
 
             <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:14px; margin-bottom:14px;">
-                <div style="font-weight:700; font-size:13px; color:#0f172a; margin-bottom:8px;">➕ 수납 / 정산 내역 신규 등록</div>
-                <div style="display:grid; grid-template-columns: 120px 1fr 1fr 1fr 1fr auto; gap:8px; align-items:end;">
+                <div style="font-weight:700; font-size:13px; color:#0f172a; margin-bottom:8px;">➕ 수납 / 정산 내역 수동 신규 등록</div>
+                <div style="display:grid; grid-template-columns: 100px 1fr 1fr 1fr 1fr auto; gap:8px; align-items:end;">
                     <div class="form-group" style="margin-bottom:0;">
                         <label>대상 월</label>
                         <select id="p_new_month">
@@ -339,7 +339,7 @@
                         </select>
                     </div>
                     <div class="form-group" style="margin-bottom:0;">
-                        <label>입금일자</label>
+                        <label>정산일자</label>
                         <input type="date" id="p_new_paid_date">
                     </div>
                     <div class="form-group" style="margin-bottom:0;">
@@ -347,7 +347,7 @@
                         <input type="number" id="p_new_paid_amt" placeholder="0">
                     </div>
                     <div class="form-group" style="margin-bottom:0;">
-                        <label>정산일자</label>
+                        <label>입금일자</label>
                         <input type="date" id="p_new_settle_date">
                     </div>
                     <div class="form-group" style="margin-bottom:0;">
@@ -514,10 +514,10 @@
                 </div>
             </div>
 
-            <!-- 3. [CMS > 수금관리] 뷰 -->
+            <!-- 3. [CMS > 수금관리] 뷰 (미정산금액 컬럼 추가) -->
             <div id="view-payment" class="view-section">
                 
-                <div class="filter-panel" style="grid-template-columns: 1.1fr 1fr 1fr 1fr 1fr auto;">
+                <div class="filter-panel" style="grid-template-columns: repeat(6, 1fr) auto;">
                     <div class="filter-group">
                         <label>계약상태:</label>
                         <div class="filter-options">
@@ -553,6 +553,14 @@
                             <option value="PAID">완납 (미납 = 0)</option>
                         </select>
                     </div>
+                    <div class="filter-group">
+                        <label>미정산:</label>
+                        <select id="payFilterUnsettledSelect" class="filter-select" onchange="filterPaymentTable()">
+                            <option value="ALL">전체 미정산</option>
+                            <option value="UNSETTLED">미정산 있음 (미정산 > 0)</option>
+                            <option value="SETTLED">정산 완료 (미정산 = 0)</option>
+                        </select>
+                    </div>
                     <div>
                         <button class="btn btn-outline" style="font-size:12px; padding: 6px 12px;" onclick="resetPaymentFilter()">초기화</button>
                     </div>
@@ -579,9 +587,13 @@
                                     <th class="sortable" onclick="sortTable('manager', 'payment')">영업대표 <span class="sort-indicator" id="psort_manager"></span></th>
                                     <th class="text-right sortable" onclick="sortTable('amount', 'payment')">상품금액 <span class="sort-indicator" id="psort_amount"></span></th>
                                     <th class="text-right sortable" onclick="sortTable('commission', 'payment')">영업수수료 <span class="sort-indicator" id="psort_commission"></span></th>
-                                    <th class="text-right sortable" onclick="sortTable('paid', 'payment')">수납금액 <span class="sort-indicator" id="psort_paid"></span></th>
-                                    <th class="text-right sortable" onclick="sortTable('settleAmount', 'payment')">정산금액 (입금일) <span class="sort-indicator" id="psort_settleAmount"></span></th>
+                                    <!-- 수납금액 (정산일 연동) -->
+                                    <th class="text-right sortable" onclick="sortTable('paid', 'payment')">수납금액 <span style="font-size:10px; font-weight:normal; color:#64748b;">(정산일)</span> <span class="sort-indicator" id="psort_paid"></span></th>
+                                    <!-- 정산금액 (입금일 연동) -->
+                                    <th class="text-right sortable" onclick="sortTable('settleAmount', 'payment')">정산금액 <span style="font-size:10px; font-weight:normal; color:#64748b;">(입금일)</span> <span class="sort-indicator" id="psort_settleAmount"></span></th>
                                     <th class="text-right sortable" onclick="sortTable('unpaid', 'payment')">미납금액 <span class="sort-indicator" id="psort_unpaid"></span></th>
+                                    <!-- 미정산금액 컬럼 추가 -->
+                                    <th class="text-right sortable" onclick="sortTable('unsettledAmount', 'payment')">미정산금액 <span class="sort-indicator" id="psort_unsettledAmount"></span></th>
                                 </tr>
                             </thead>
                             <tbody id="payment-table-body"></tbody>
@@ -643,10 +655,15 @@
 
         async function loadDataFromGAS() {
             showLoading(true);
+            let controller = new AbortController();
+            let timeoutId = setTimeout(() => controller.abort(), 3000);
+
             try {
-                let response = await fetch(GAS_URL);
+                let response = await fetch(GAS_URL, { signal: controller.signal });
+                clearTimeout(timeoutId);
+
                 let result = await response.json();
-                if (result && result.status === 'success') {
+                if (result && result.status === 'success' && result.data) {
                     customerDataList = result.data.customers || [];
                     paymentDataMap = result.data.payments || {};
                     contractHistoryMap = result.data.histories || {};
@@ -657,7 +674,7 @@
                     updateKPIs();
                 }
             } catch (err) {
-                console.warn("GAS 데이터 로드 통신 에러 (로컬 모드로 전환):", err);
+                console.warn("GAS 통신 타임아웃/로컬 모드 진행:", err);
             } finally {
                 showLoading(false);
             }
@@ -736,6 +753,7 @@
                     if (key === 'paid') valA = payA.paid, valB = payB.paid;
                     else if (key === 'settleAmount') valA = payA.settle, valB = payB.settle;
                     else if (key === 'unpaid') valA = payA.unpaid, valB = payB.unpaid;
+                    else if (key === 'unsettledAmount') valA = payA.unsettled, valB = payB.unsettled;
                 }
 
                 if (typeof valA === 'number' && typeof valB === 'number') {
@@ -799,6 +817,7 @@
             let selectedStore = document.getElementById('payFilterStoreSelect').value;
             let selectedManager = document.getElementById('payFilterManagerSelect').value;
             let selectedUnpaid = document.getElementById('payFilterUnpaidSelect').value;
+            let selectedUnsettled = document.getElementById('payFilterUnsettledSelect').value;
 
             let filtered = customerDataList.filter(item => {
                 let matchesSearch = (item.no || '').toLowerCase().includes(query) ||
@@ -817,7 +836,11 @@
                 if (selectedUnpaid === 'UNPAID') matchesUnpaid = summary.unpaid > 0;
                 else if (selectedUnpaid === 'PAID') matchesUnpaid = summary.unpaid === 0;
 
-                return matchesSearch && matchesStatus && matchesAgency && matchesStore && matchesManager && matchesUnpaid;
+                let matchesUnsettled = true;
+                if (selectedUnsettled === 'UNSETTLED') matchesUnsettled = summary.unsettled > 0;
+                else if (selectedUnsettled === 'SETTLED') matchesUnsettled = summary.unsettled === 0;
+
+                return matchesSearch && matchesStatus && matchesAgency && matchesStore && matchesManager && matchesUnpaid && matchesUnsettled;
             });
 
             renderPaymentTableContent(filtered);
@@ -829,6 +852,7 @@
             document.getElementById('payFilterStoreSelect').value = 'ALL';
             document.getElementById('payFilterManagerSelect').value = 'ALL';
             document.getElementById('payFilterUnpaidSelect').value = 'ALL';
+            document.getElementById('payFilterUnsettledSelect').value = 'ALL';
             filterPaymentTable();
         }
 
@@ -919,6 +943,7 @@
             e.target.value = '';
         });
 
+        // 수금 결제 파일 업로드 (수납금액 & 정산일 연동)
         document.getElementById('paymentFileInput').addEventListener('change', function(e) {
             let file = e.target.files[0];
             if (!file) return;
@@ -935,21 +960,22 @@
                     rawData.forEach(row => {
                         let no = String(row['회원번호'] || '').trim();
                         let paidVal = parseInt(row['수납금액']) || 0;
-                        let rawDate = String(row['정산일'] || row['결제일'] || '').trim().split('T')[0];
+                        let settleDateVal = String(row['정산일'] || row['결제일'] || '').trim().split('T')[0]; // 정산일
                         let billingMonth = String(row['청구월'] || '').replace('/', '-').trim();
 
                         if (no) {
                             if (!paymentDataMap[no]) paymentDataMap[no] = {};
                             
-                            let monthKey = billingMonth || (rawDate ? rawDate.substring(0, 7) : `${currentModalYear}-10`);
-                            
+                            let monthKey = billingMonth || (settleDateVal ? settleDateVal.substring(0, 7) : `${currentModalYear}-10`);
+                            let existing = paymentDataMap[no][monthKey] || {};
+
                             paymentDataMap[no][monthKey] = {
-                                amount: parseInt(row['공급가액']) || 0,
-                                commission: 0,
+                                amount: parseInt(row['공급가액']) || existing.amount || 0,
+                                commission: existing.commission || 0,
                                 paid: paidVal,
-                                paidDate: rawDate,
-                                settle: paidVal,
-                                settleDate: rawDate,
+                                paidDate: settleDateVal, // 수납금액에 정산일 매칭
+                                settle: existing.settle || 0,
+                                settleDate: existing.settleDate || '',
                                 unpaid: parseInt(row['미납금액']) || 0
                             };
                             matchCount++;
@@ -958,7 +984,7 @@
 
                     renderPaymentTable();
                     syncToGAS();
-                    alert(`총 ${matchCount}건의 수금 결제 내역이 정상 연동되었습니다.`);
+                    alert(`총 ${matchCount}건의 수금 내역(수납금액 & 정산일)이 매칭 업로드되었습니다.`);
                 } catch (err) {
                     alert("수금 엑셀 업로드 실패: " + err);
                 }
@@ -967,7 +993,6 @@
             e.target.value = '';
         });
 
-        // 고객관리 표 렌더링 (회원번호 클릭 시 고객 세부정보 팝업 모달 연동)
         function renderCustomerTable(dataList) {
             let tbody = "";
             dataList.forEach((item, index) => {
@@ -981,7 +1006,6 @@
                 tbody += `<tr>
                     <td class="text-center"><input type="checkbox" class="cust-check" value="${item.idx}" /></td>
                     <td class="text-center">${item.idx}</td>
-                    <!-- 고객관리 회원번호 클릭 시 세부정보 팝업 연동 -->
                     <td style="font-weight:600;">
                         <a href="javascript:void(0)" style="color:#1e293b; text-decoration:none;" onclick="openDetailModal(${item.idx})" title="고객 세부정보 보기">${item.no}</a>
                     </td>
@@ -1012,6 +1036,7 @@
             document.getElementById('selectAllCustomer').checked = false;
         }
 
+        // 연간 요약 계산 (수납, 정산, 미납, 미정산)
         function getYearlySummary(no, year) {
             let userPayMap = paymentDataMap[no] || {};
             let sumPaid = 0, sumSettle = 0, sumUnpaid = 0;
@@ -1023,14 +1048,14 @@
                 sumSettle += (mData.settle || 0);
                 sumUnpaid += (mData.unpaid || 0);
             }
-            return { paid: sumPaid, settle: sumSettle, unpaid: sumUnpaid };
+            let sumUnsettled = Math.max(0, sumPaid - sumSettle);
+            return { paid: sumPaid, settle: sumSettle, unpaid: sumUnpaid, unsettled: sumUnsettled };
         }
 
         function renderPaymentTable() {
             filterPaymentTable();
         }
 
-        // 수금관리 표 렌더링 (회원번호 검은색 및 밑줄 없음 적용)
         function renderPaymentTableContent(dataList) {
             let tbody = "";
             dataList.forEach((item, index) => {
@@ -1040,7 +1065,6 @@
                 tbody += `<tr>
                     <td class="text-center">${index + 1}</td>
                     <td style="font-weight:700;">
-                        <!-- 수금관리 회원번호 검은색(#1e293b) 및 밑줄 제거 적용 -->
                         <a href="javascript:void(0)" style="color:#1e293b; text-decoration:none;" onclick="openPaymentDetailModal('${item.no}')" title="월별 상세 수금내역 보기">${item.no}</a>
                     </td>
                     <td style="font-weight:700;">${item.name}</td>
@@ -1053,6 +1077,7 @@
                     <td class="text-right" style="color:#1e293b; font-weight:600;">${summary.paid.toLocaleString()} 원</td>
                     <td class="text-right" style="color:#1e293b; font-weight:600;">${summary.settle.toLocaleString()} 원</td>
                     <td class="text-right" style="color:${summary.unpaid > 0 ? '#dc2626' : '#1e293b'}; font-weight:700;">${summary.unpaid.toLocaleString()} 원</td>
+                    <td class="text-right" style="color:${summary.unsettled > 0 ? '#dc2626' : '#1e293b'}; font-weight:700;">${summary.unsettled.toLocaleString()} 원</td>
                 </tr>`;
             });
             document.getElementById('payment-table-body').innerHTML = tbody;
@@ -1098,9 +1123,9 @@
                 let pAmt = mData.amount !== undefined ? mData.amount : item.amount;
                 let cAmt = mData.commission !== undefined ? mData.commission : (item.commission || 0);
                 let paidAmt = mData.paid || 0;
-                let paidDate = mData.paidDate || '';
+                let paidDate = mData.paidDate || ''; // 정산일
                 let settleAmt = mData.settle || 0;
-                let settleDate = mData.settleDate || '';
+                let settleDate = mData.settleDate || ''; // 입금일
                 let unpaidAmt = mData.unpaid !== undefined ? mData.unpaid : Math.max(0, pAmt - paidAmt);
 
                 sumAmt += pAmt;
@@ -1115,13 +1140,13 @@
                     <td class="text-right">${cAmt.toLocaleString()}</td>
                     <td>
                         <div style="display:flex; gap:4px;">
-                            <input type="date" value="${paidDate}" id="pd_${m}" style="width:110px;" />
+                            <input type="date" value="${paidDate}" id="pd_${m}" style="width:110px;" title="정산일" />
                             <input type="number" value="${paidAmt}" id="pa_${m}" placeholder="0" oninput="calcModalRow(${m})" />
                         </div>
                     </td>
                     <td>
                         <div style="display:flex; gap:4px;">
-                            <input type="date" value="${settleDate}" id="sd_${m}" style="width:110px;" />
+                            <input type="date" value="${settleDate}" id="sd_${m}" style="width:110px;" title="입금일" />
                             <input type="number" value="${settleAmt}" id="sa_${m}" placeholder="0" />
                         </div>
                     </td>
@@ -1168,13 +1193,14 @@
             syncToGAS();
         }
 
+        // 수동 정산금액(입금일) 신규 추가 등록
         function addQuickPaymentRow() {
             let no = document.getElementById('p_edit_no').value;
             let month = document.getElementById('p_new_month').value;
-            let paidDate = document.getElementById('p_new_paid_date').value;
-            let paidAmt = parseInt(document.getElementById('p_new_paid_amt').value) || 0;
-            let settleDate = document.getElementById('p_new_settle_date').value;
-            let settleAmt = parseInt(document.getElementById('p_new_settle_amt').value) || 0;
+            let paidDate = document.getElementById('p_new_paid_date').value; // 정산일자
+            let paidAmt = parseInt(document.getElementById('p_new_paid_amt').value) || 0; // 수납금액
+            let settleDate = document.getElementById('p_new_settle_date').value; // 입금일자
+            let settleAmt = parseInt(document.getElementById('p_new_settle_amt').value) || 0; // 정산금액
 
             if (!no) return;
             if (!paymentDataMap[no]) paymentDataMap[no] = {};
@@ -1392,6 +1418,7 @@
                     '연간수납금액': summary.paid,
                     '연간정산금액': summary.settle,
                     '연간미납금액': summary.unpaid,
+                    '연간미정산금액': summary.unsettled,
                     '비고일자': memoInfo.date || '',
                     '비고내용': memoInfo.text || ''
                 };
