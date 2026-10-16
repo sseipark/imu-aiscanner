@@ -79,7 +79,6 @@
         .view-section { display: none; }
         .view-section.active { display: block; }
 
-        /* 대시보드 및 필터 스타일 */
         .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
         .kpi-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 18px 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
         .kpi-title { font-size: 12px; color: var(--text-sub); margin-bottom: 6px; font-weight: 600; }
@@ -97,7 +96,7 @@
         .status-tab-badge { background: rgba(255,255,255,0.25); padding: 1px 6px; border-radius: 12px; font-size: 11px; }
         .status-tab:not(.active) .status-tab-badge { background: #cbd5e1; color: #1e293b; }
 
-        .filter-dropdown-row { display: grid; grid-template-columns: repeat(5, 1fr) auto; gap: 12px; align-items: center; }
+        .filter-dropdown-row { display: grid; grid-template-columns: repeat(6, 1fr) auto; gap: 10px; align-items: center; }
         .filter-group { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #475569; }
         .filter-group label { white-space: nowrap; }
         .filter-select { padding: 6px 8px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; background: #ffffff; width: 100%; }
@@ -107,15 +106,17 @@
         
         .card-actions { display: flex; gap: 8px; align-items: center; }
 
-        /* 테이블 */
+        /* 테이블 및 클릭 셀 영역 컴팩트 디자인 */
         .table-container { overflow: auto; max-height: 580px; border: 1px solid var(--border-color); border-radius: 6px; }
         table { width: 100%; border-collapse: collapse; text-align: left; }
-        th, td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid var(--border-color); white-space: nowrap; vertical-align: middle; }
+        th, td { padding: 8px 10px; font-size: 12px; border-bottom: 1px solid var(--border-color); white-space: nowrap; vertical-align: middle; }
         th { background-color: #f8fafc; color: var(--text-sub); font-weight: 600; position: sticky; top: 0; z-index: 1; }
         th.sortable { cursor: pointer; user-select: none; }
         th.sortable:hover { background-color: #e2e8f0; color: #0f172a; }
         .sort-indicator { font-size: 11px; margin-left: 2px; color: #2563eb; }
         tr:hover { background-color: #f1f5f9; }
+        .clickable-cell { cursor: pointer; font-weight: 700; color: #1e293b; }
+        .clickable-cell:hover { color: #2563eb; text-decoration: underline; background: #eff6ff; }
         .text-right { text-align: right; }
         .text-center { text-align: center; }
         .sub-text { font-size: 11px; color: #64748b; margin-top: 2px; }
@@ -137,6 +138,9 @@
         .form-group label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px; }
         .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none; }
 
+        /* 월별 수금 모달 테이블 컴팩트 스타일 (1월~12월 스크롤 없이 한눈에 표기) */
+        .payment-modal-table th, .payment-modal-table td { padding: 5px 8px; font-size: 11px; }
+
         .history-list { max-height: 220px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; margin-bottom: 16px; background: #f8fafc; }
         .history-item { font-size: 12px; padding: 8px; border-bottom: 1px dashed #cbd5e1; display: flex; justify-content: space-between; align-items: center; }
         .history-item:last-child { border-bottom: none; }
@@ -145,12 +149,12 @@
         .year-btn { cursor: pointer; padding: 4px 12px; border-radius: 4px; border: 1px solid #cbd5e1; background: #ffffff; font-size: 13px; font-weight: 600; }
         .year-btn:hover { background: #f1f5f9; }
 
-        .modal-user-card { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px 18px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .modal-user-info { display: flex; gap: 24px; font-size: 14px; font-weight: 700; color: #1e3a8a; }
+        .modal-user-card { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .modal-user-info { display: flex; gap: 24px; font-size: 13px; font-weight: 700; color: #1e3a8a; }
 
-        .val-item { display: flex; align-items: center; justify-content: flex-end; gap: 6px; font-size: 12px; font-weight: 600; }
-        .val-date { font-size: 11px; color: #64748b; font-weight: normal; }
-        .btn-mini-x { background: transparent; border: none; color: #ef4444; font-size: 12px; font-weight: 800; cursor: pointer; padding: 0 4px; border-radius: 3px; }
+        .val-item { display: flex; align-items: center; justify-content: flex-end; gap: 6px; font-size: 11px; font-weight: 600; }
+        .val-date { font-size: 10px; color: #64748b; font-weight: normal; }
+        .btn-mini-x { background: transparent; border: none; color: #ef4444; font-size: 11px; font-weight: 800; cursor: pointer; padding: 0 4px; border-radius: 3px; }
         .btn-mini-x:hover { background: #fee2e2; }
 
         .table-input-inline { padding: 4px 6px; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none; }
@@ -158,18 +162,31 @@
         .history-tag-item { display: flex; flex-direction: column; gap: 2px; font-size: 11px; font-weight: 600; color: #2563eb; margin-bottom: 3px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 2px; }
         .history-tag-item:last-child { border-bottom: none; margin-bottom: 0; }
 
-        .log-list-box { max-height: 140px; overflow-y: auto; border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 6px; padding: 8px; font-size: 11px; margin-top: 10px; }
-        .log-item { padding: 4px 0; border-bottom: 1px dashed #e2e8f0; color: #475569; }
+        .log-list-box { max-height: 120px; overflow-y: auto; border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 6px; padding: 8px; font-size: 11px; margin-top: 8px; }
+        .log-item { padding: 3px 0; border-bottom: 1px dashed #e2e8f0; color: #475569; }
         .log-item:last-child { border-bottom: none; }
         .log-user { font-weight: 700; color: #2563eb; }
 
         .editable-only { display: inline-flex; }
         body.readonly-mode .editable-only { display: none !important; }
 
+        /* 강제 잠금 오버레이 레이어 (로그아웃 시 노출) */
+        #lockScreenOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.92); z-index: 9999; display: flex; justify-content: center; align-items: center; color: white; }
+
         #fileInput, #paymentFileInput, #billingFileInput { display: none; }
     </style>
 </head>
 <body>
+
+    <!-- 강제 화면 잠금 오버레이 (로그아웃 시 전체 잠금) -->
+    <div id="lockScreenOverlay" style="display:none;">
+        <div style="background: white; border-radius: 12px; width: 380px; padding: 32px; color: #1e293b; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3);">
+            <div style="font-size: 32px; margin-bottom: 10px;">🔒</div>
+            <div style="font-size: 18px; font-weight: 800; margin-bottom: 6px; color: #0f172a;">시스템 잠금 상태</div>
+            <div style="font-size: 13px; color: #64748b; margin-bottom: 20px;">정보 보안을 위해 로그아웃되었습니다.<br>계정 로그인을 진행해주세요.</div>
+            <button class="btn btn-primary" style="width: 100%; justify-content: center; padding: 10px;" onclick="openModal('loginModal')">로그인 화면 열기</button>
+        </div>
+    </div>
 
     <!-- 로그인 모달 -->
     <div id="loginModal" class="modal-overlay">
@@ -198,6 +215,25 @@
             <div style="display:flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
                 <button class="btn btn-outline" onclick="closeModal('findPwModal')">취소</button>
                 <button class="btn btn-primary" onclick="processFindPw()">비밀번호 찾기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 수금업로드 회차별 일괄 삭제 모달 -->
+    <div id="deleteUploadBatchModal" class="modal-overlay">
+        <div class="modal-card" style="width: 600px;">
+            <div class="modal-header">
+                <span>수금업로드 회차별 일괄 삭제</span>
+                <span style="cursor:pointer;" onclick="closeModal('deleteUploadBatchModal')">✕</span>
+            </div>
+            <div class="form-group">
+                <label>수금 엑셀 파일 업로드 이력 (회차별 전체 삭제)</label>
+                <div class="history-list" id="uploadBatchListContainer" style="max-height: 280px;">
+                    <div style="text-align:center; color:#94a3b8; padding:20px;">업로드된 수금 회차 이력이 없습니다.</div>
+                </div>
+            </div>
+            <div style="display:flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
+                <button class="btn btn-outline" onclick="closeModal('deleteUploadBatchModal')">닫기</button>
             </div>
         </div>
     </div>
@@ -236,7 +272,7 @@
         </div>
     </div>
 
-    <!-- 2. 고객 세부내역 및 수정이력 확인 모달 -->
+    <!-- 2. 고객 세부내역 모달 -->
     <div id="detailModal" class="modal-overlay">
         <div class="modal-card modal-card-large" style="width: 780px;">
             <div class="modal-header">
@@ -284,7 +320,7 @@
         </div>
     </div>
 
-    <!-- 3. 청구 수동 신규 등록 모달 -->
+    <!-- 3. 청구 수동 등록 모달 -->
     <div id="billingModal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-header">
@@ -360,7 +396,7 @@
         </div>
     </div>
 
-    <!-- 5. 서류 등록 전용 관리 모달 -->
+    <!-- 5. 서류 모달 -->
     <div id="docModal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-header">
@@ -396,7 +432,7 @@
         </div>
     </div>
 
-    <!-- 6. 상담 내역 관리 모달 -->
+    <!-- 6. 상담 모달 -->
     <div id="counselModal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-header">
@@ -443,7 +479,7 @@
         </div>
     </div>
 
-    <!-- 7. 수금 관리 회원번호 클릭 상세 모달 -->
+    <!-- 7. 수금 상세 모달 (1월~12월 스크롤 없이 컴팩트 표출) -->
     <div id="paymentDetailModal" class="modal-overlay">
         <div class="modal-card modal-card-large">
             <div class="modal-header">
@@ -466,17 +502,17 @@
                 </div>
             </div>
 
-            <div class="table-container payment-modal-table" style="max-height: 280px; margin-bottom: 12px;">
+            <div class="table-container payment-modal-table" style="max-height: 380px; margin-bottom: 12px;">
                 <table>
                     <thead>
                         <tr>
-                            <th class="text-center" style="width:80px;">월</th>
-                            <th class="text-right" style="width:100px;">청구금액</th>
-                            <th class="text-right" style="width:90px;">영업수수료</th>
+                            <th class="text-center" style="width:70px;">월</th>
+                            <th class="text-right" style="width:90px;">청구금액</th>
+                            <th class="text-right" style="width:85px;">영업수수료</th>
                             <th class="text-right" style="width:230px;">수납금액 (정산일)</th>
                             <th class="text-right" style="width:230px;">정산금액 (입금일)</th>
-                            <th class="text-right" style="width:100px;">미납금액</th>
-                            <th class="text-right" style="width:100px;">미정산금액</th>
+                            <th class="text-right" style="width:90px;">미납금액</th>
+                            <th class="text-right" style="width:90px;">미정산금액</th>
                         </tr>
                     </thead>
                     <tbody id="payment-modal-tbody"></tbody>
@@ -769,6 +805,13 @@
                     <h3>
                         <span>전체 계약 이력 통합 관리</span>
                         <div class="card-actions">
+                            <label style="font-size:12px; font-weight:700;">조회 연월:</label>
+                            <select id="histSelectMonth" class="filter-select" style="width:130px;" onchange="renderHistoryManagerTable()">
+                                <option value="ALL">전체 연월</option>
+                                <option value="2026-10">2026년 10월</option>
+                                <option value="2026-09">2026년 09월</option>
+                                <option value="2026-08">2026년 08월</option>
+                            </select>
                             <select id="histFilterType" class="filter-select" style="width:160px;" onchange="renderHistoryManagerTable()">
                                 <option value="ALL">전체 계약구분</option>
                                 <option value="사용">사용</option>
@@ -817,6 +860,14 @@
 
                     <div class="filter-dropdown-row">
                         <div class="filter-group">
+                            <label>조회 연월:</label>
+                            <select id="paySelectMonth" class="filter-select" onchange="filterPaymentTable()">
+                                <option value="2026-10">2026년 10월</option>
+                                <option value="2026-09">2026년 09월</option>
+                                <option value="2026-08">2026년 08월</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
                             <label>대리점:</label>
                             <select id="payFilterAgencySelect" class="filter-select" onchange="filterPaymentTable()">
                                 <option value="ALL">전체 대리점</option>
@@ -861,6 +912,7 @@
                         <span>월별 수금 및 입금 관리 내역</span>
                         <div class="card-actions">
                             <button class="btn btn-excel editable-only" style="font-size: 12px; padding: 6px 12px;" onclick="document.getElementById('paymentFileInput').click()">수금업로드</button>
+                            <button class="btn btn-danger editable-only" style="font-size: 12px; padding: 6px 12px;" onclick="openDeleteBatchModal()">수금삭제</button>
                             <button class="btn btn-outline" style="font-size: 12px; padding: 6px 12px;" onclick="downloadPaymentExcel()">엑셀 다운로드</button>
                         </div>
                     </h3>
@@ -895,6 +947,12 @@
                     <h3>
                         <span>월별 청구 내역 관리</span>
                         <div class="card-actions">
+                            <label style="font-size:12px; font-weight:700;">조회 연월:</label>
+                            <select id="billSelectMonth" class="filter-select" style="width:130px;" onchange="renderBillingTable()">
+                                <option value="ALL">전체 연월</option>
+                                <option value="2026/10">2026년 10월</option>
+                                <option value="2026/09">2026년 09월</option>
+                            </select>
                             <button class="btn btn-primary editable-only" style="font-size: 12px; padding: 6px 12px;" onclick="openModal('billingModal')">등록</button>
                             <button class="btn btn-danger editable-only" style="font-size: 12px; padding: 6px 12px;" onclick="deleteSelectedBillings()">삭제</button>
                             <button class="btn btn-excel editable-only" style="font-size: 12px; padding: 6px 12px;" onclick="document.getElementById('billingFileInput').click()">대량업로드</button>
@@ -978,7 +1036,7 @@
                 </div>
             </div>
 
-            <!-- 9. [관리자맵 > 계정 및 권한 관리] 뷰 -->
+            <!-- 9. [관리자맵 > 계정 및 권한 관리 / 휴지통 복구 섹션 추가] 뷰 -->
             <div id="view-adminMap" class="view-section">
                 <div class="content-card">
                     <h3>
@@ -1002,6 +1060,28 @@
                                 </tr>
                             </thead>
                             <tbody id="admin-users-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 삭제된 데이터 휴지통 및 복구 섹션 -->
+                <div class="content-card">
+                    <h3>🗑️ 삭제된 데이터 휴지통 (삭제 내역 원상 복구)</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="text-center">NO.</th>
+                                    <th>회원번호</th>
+                                    <th>회원명</th>
+                                    <th>삭제된 시각</th>
+                                    <th>삭제 처리자</th>
+                                    <th class="text-center">복구 처리</th>
+                                </tr>
+                            </thead>
+                            <tbody id="trash-list-tbody">
+                                <tr><td colspan="6" class="text-center" style="color:#94a3b8; padding:20px;">휴지통에 삭제된 고객 내역이 없습니다.</td></tr>
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -1060,8 +1140,9 @@
         let counselDataMap = {};   
         let custEditLogMap = {};   
         let payEditLogMap = {};    
+        let uploadBatchList = [];  
+        let deletedCustomerTrashList = []; // 삭제된 고객 휴지통 데이터
 
-        // 초기 계정 목록 설정 (admin 계정 및 psei 개인 계정 분리)
         let userAccountsList = [
             { id: "admin", pw: "1234", role: "관리자", phone: "010-0000-0000", email: "admin@imupos.com", isBlocked: false },
             { id: "psei", pw: "1111", role: "관리자", phone: "010-9324-1452", email: "psei@imupos.com", isBlocked: false }
@@ -1088,6 +1169,8 @@
             let savedUsers = localStorage.getItem('cms_users_list');
             let savedCustLog = localStorage.getItem('cms_cust_log');
             let savedPayLog = localStorage.getItem('cms_pay_log');
+            let savedBatch = localStorage.getItem('cms_upload_batch');
+            let savedTrash = localStorage.getItem('cms_trash_list');
 
             if (savedCust) customerDataList = JSON.parse(savedCust);
             if (savedPay) paymentDataMap = JSON.parse(savedPay);
@@ -1096,6 +1179,8 @@
             if (savedUsers) userAccountsList = JSON.parse(savedUsers);
             if (savedCustLog) custEditLogMap = JSON.parse(savedCustLog);
             if (savedPayLog) payEditLogMap = JSON.parse(savedPayLog);
+            if (savedBatch) uploadBatchList = JSON.parse(savedBatch);
+            if (savedTrash) deletedCustomerTrashList = JSON.parse(savedTrash);
 
             updateAuthUI();
             updateSelectOptions();
@@ -1105,10 +1190,10 @@
             renderBillingTable();
             renderHistoryManagerTable();
             renderAdminUsersTable();
+            renderTrashTable();
             updateKPIs();
             renderDashboardCharts();
 
-            // Firebase 비동기 동기화 (2초 타임아웃 예외처리로 무한로딩 차단)
             let syncTimeout = setTimeout(() => {
                 console.warn("Firebase 네트워크 응답 대기 완료");
             }, 2000);
@@ -1126,6 +1211,8 @@
                     userAccountsList = data.users || userAccountsList;
                     custEditLogMap = data.custLogs || {};
                     payEditLogMap = data.payLogs || {};
+                    uploadBatchList = data.batches || uploadBatchList;
+                    deletedCustomerTrashList = data.trash || [];
 
                     saveLocalStorage();
                     updateAuthUI();
@@ -1136,6 +1223,7 @@
                     renderBillingTable();
                     renderHistoryManagerTable();
                     renderAdminUsersTable();
+                    renderTrashTable();
                     updateKPIs();
                     renderDashboardCharts();
                 }
@@ -1158,7 +1246,9 @@
                 counsels: counselDataMap,
                 users: userAccountsList,
                 custLogs: custEditLogMap,
-                payLogs: payEditLogMap
+                payLogs: payEditLogMap,
+                batches: uploadBatchList,
+                trash: deletedCustomerTrashList
             });
         }
 
@@ -1170,23 +1260,29 @@
             localStorage.setItem('cms_users_list', JSON.stringify(userAccountsList));
             localStorage.setItem('cms_cust_log', JSON.stringify(custEditLogMap));
             localStorage.setItem('cms_pay_log', JSON.stringify(payEditLogMap));
+            localStorage.setItem('cms_upload_batch', JSON.stringify(uploadBatchList));
+            localStorage.setItem('cms_trash_list', JSON.stringify(deletedCustomerTrashList));
         }
 
+        // 로그아웃 시 전체 잠금 오버레이 활성화
         function updateAuthUI() {
             let badge = document.getElementById('userStatusBadge');
             let btn = document.getElementById('loginLogoutBtn');
             let adminBlock = document.getElementById('adminMenuBlock');
             let adminSubBlock = document.getElementById('adminSubMenuBlock');
+            let lockOverlay = document.getElementById('lockScreenOverlay');
 
             if (!currentUser) {
-                badge.innerText = "접속자: 미로그인 (조회 전용)";
+                badge.innerText = "접속자: 미로그인 (잠금됨)";
                 btn.innerText = "로그인";
+                lockOverlay.style.display = 'flex'; // 전체 화면 잠금
                 document.body.classList.add('readonly-mode');
                 adminBlock.style.display = 'none';
                 adminSubBlock.style.display = 'none';
             } else {
                 badge.innerText = `접속자: ${currentUser.id} (${currentUser.role})`;
                 btn.innerText = "로그아웃";
+                lockOverlay.style.display = 'none'; // 잠금 해제
 
                 if (currentUser.role === '보기전용') {
                     document.body.classList.add('readonly-mode');
@@ -1209,7 +1305,7 @@
             if (currentUser) {
                 currentUser = null;
                 updateAuthUI();
-                alert("로그아웃 되었습니다. 보기전용 권한으로 전환됩니다.");
+                alert("로그아웃 되었습니다. 시스템이 안전하게 잠깁니다.");
             } else {
                 openModal('loginModal');
             }
@@ -1263,6 +1359,50 @@
                 if (!payEditLogMap[custNo]) payEditLogMap[custNo] = [];
                 payEditLogMap[custNo].unshift(entry);
             }
+        }
+
+        function openDeleteBatchModal() {
+            renderUploadBatchList();
+            openModal('deleteUploadBatchModal');
+        }
+
+        function renderUploadBatchList() {
+            let container = document.getElementById('uploadBatchListContainer');
+            if (uploadBatchList.length === 0) {
+                container.innerHTML = `<div style="text-align:center; color:#94a3b8; padding:20px;">업로드된 수금 회차 이력이 없습니다.</div>`;
+                return;
+            }
+            let html = "";
+            uploadBatchList.forEach((b, idx) => {
+                html += `<div class="history-item" style="padding:10px 8px;">
+                    <div>
+                        <strong>[${b.time}]</strong> ${b.fileName} (${b.count}건 매칭)
+                    </div>
+                    <button class="btn-danger" style="font-size:11px; padding:4px 8px;" onclick="deleteUploadBatch(${idx})">이 회차 업로드 전체 삭제</button>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function deleteUploadBatch(batchIdx) {
+            let targetBatch = uploadBatchList[batchIdx];
+            if (!targetBatch) return;
+
+            if (!confirm(`[${targetBatch.time}] 업로드된 ${targetBatch.count}건의 수금 데이터를 일괄 삭제하시겠습니까?`)) return;
+
+            targetBatch.records.forEach(r => {
+                if (paymentDataMap[r.no] && paymentDataMap[r.no][r.monthKey]) {
+                    delete paymentDataMap[r.no][r.monthKey];
+                    logEditRecord('PAY', r.no, `[${targetBatch.time}] 엑셀 업로드 회차 일괄 삭제됨`);
+                }
+            });
+
+            uploadBatchList.splice(batchIdx, 1);
+            renderUploadBatchList();
+            renderPaymentTable();
+            renderDashboardCharts();
+            syncToFirebase();
+            alert("선택하신 회차의 수금 업로드 데이터가 일괄 삭제되었습니다.");
         }
 
         function autoCalcCommission(typeElemId, amountElemId, commissionElemId) {
@@ -1336,7 +1476,10 @@
             if (category === 'historyManager') renderHistoryManagerTable();
             if (category === 'payment') renderPaymentTable();
             if (category === 'billing') renderBillingTable();
-            if (category === 'adminMap') renderAdminUsersTable();
+            if (category === 'adminMap') {
+                renderAdminUsersTable();
+                renderTrashTable();
+            }
         }
 
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
@@ -1345,6 +1488,7 @@
         function onGlobalSearch() {
             filterCustomerTable();
             filterPaymentTable();
+            renderBillingTable();
             renderHistoryManagerTable();
         }
 
@@ -1629,194 +1773,7 @@
             managerSelect.value = managers.includes(currentManager) ? currentManager : 'ALL';
         }
 
-        function toggleSelectAllCustomer(master) {
-            let checkboxes = document.querySelectorAll('.cust-check');
-            checkboxes.forEach(cb => cb.checked = master.checked);
-        }
-
-        function toggleSelectAllBilling(master) {
-            let checkboxes = document.querySelectorAll('.bill-check');
-            checkboxes.forEach(cb => cb.checked = master.checked);
-        }
-
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            let file = e.target.files[0];
-            if (!file) return;
-
-            let reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    let data = new Uint8Array(e.target.result);
-                    let workbook = XLSX.read(data, {type: 'array'});
-                    let sheetName = workbook.SheetNames[0];
-                    let rawData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {defval: ""});
-
-                    if (rawData.length > 0 && rawData[0]['회원번호'] !== undefined && rawData[0]['회원명'] !== undefined) {
-                        customerDataList = rawData.map((row, idx) => {
-                            let custNo = String(row['회원번호'] || '');
-                            let startD = String(row['청구시작일'] || '').split('T')[0];
-                            let typeStr = String(row['회원구분'] || '미지정');
-                            let pAmt = parseInt(row['상품금액합'] || row['상품금액']) || 0;
-                            let cAmt = parseInt(row['영업수수료']) || 0;
-
-                            if (typeStr === 'AI스캐너') {
-                                let commMap = { 66000:0, 104500:0, 132000:27500, 165000:44000, 264000:55000, 286000:77000 };
-                                if (commMap[pAmt] !== undefined) cAmt = commMap[pAmt];
-                            }
-
-                            if (custNo && startD) {
-                                if (!contractHistoryMap[custNo]) contractHistoryMap[custNo] = [];
-                                contractHistoryMap[custNo].unshift({
-                                    type: '사용',
-                                    date: startD,
-                                    memo: '청구시작일 자동연동',
-                                    fileName: ''
-                                });
-                            }
-
-                            return {
-                                idx: idx + 1,
-                                no: custNo,
-                                name: String(row['회원명'] || ''),
-                                phone: String(row['납부자 휴대전화'] || ''),
-                                status: String(row['계약상태'] || '사용'),
-                                startDate: startD,
-                                amount: pAmt,
-                                commission: cAmt,
-                                type: typeStr,
-                                agency: String(row['대리점'] || '-'),
-                                store: String(row['가맹점'] || '-'),
-                                manager: String(row['영업대표'] || '-')
-                            };
-                        });
-
-                        updateSelectOptions();
-                        updateTabBadges();
-                        filterCustomerTable();
-                        renderHistoryManagerTable();
-                        updateKPIs();
-                        renderDashboardCharts();
-                        syncToFirebase();
-                        alert(`총 ${customerDataList.length}건의 고객 정보가 자동 등록되었습니다.`);
-                    }
-                } catch (err) {
-                    alert("엑셀 업로드 실패: " + err);
-                }
-            };
-            reader.readAsArrayBuffer(file);
-            e.target.value = '';
-        });
-
-        document.getElementById('billingFileInput').addEventListener('change', function(e) {
-            let file = e.target.files[0];
-            if (!file) return;
-
-            let reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    let data = new Uint8Array(e.target.result);
-                    let workbook = XLSX.read(data, {type: 'array'});
-                    
-                    let sheetName = workbook.SheetNames.includes('Sheet1') ? 'Sheet1' : workbook.SheetNames[0];
-                    let rawData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {defval: ""});
-
-                    if (rawData.length > 0 && rawData[0]['청구금액'] !== undefined) {
-                        billingDataList = rawData.map((row, idx) => {
-                            let no = String(row['회원번호'] || '').trim();
-                            let billAmt = parseInt(row['청구금액']) || 0;
-                            let month = String(row['청구월'] || '2026/10').replace('/', '-').trim();
-                            let typeStr = String(row['회원구분'] || '');
-
-                            let custItem = customerDataList.find(c => c.no === no);
-                            if (custItem) {
-                                if (billAmt > 0) custItem.amount = billAmt;
-                                if (typeStr === 'AI스캐너') {
-                                    let commMap = { 66000:0, 104500:0, 132000:27500, 165000:44000, 264000:55000, 286000:77000 };
-                                    if (commMap[billAmt] !== undefined) {
-                                        custItem.commission = commMap[billAmt];
-                                    }
-                                }
-                            }
-
-                            return {
-                                idx: idx + 1,
-                                no: no,
-                                name: String(row['회원명'] || ''),
-                                month: month,
-                                amount: billAmt,
-                                status: String(row['수납상태'] || '청구'),
-                                product: String(row['상품'] || ''),
-                                payMethod: String(row['결제수단'] || row['결제방식'] || 'CMS')
-                            };
-                        });
-
-                        renderBillingTable();
-                        filterCustomerTable();
-                        filterPaymentTable();
-                        renderDashboardCharts();
-                        syncToFirebase();
-                        alert(`총 ${billingDataList.length}건의 청구 내역(Sheet1)이 등록되었습니다.`);
-                    } else {
-                        alert("청구목록 엑셀 포맷을 확인해 주세요.");
-                    }
-                } catch (err) {
-                    alert("청구 엑셀 업로드 실패: " + err);
-                }
-            };
-            reader.readAsArrayBuffer(file);
-            e.target.value = '';
-        });
-
-        document.getElementById('paymentFileInput').addEventListener('change', function(e) {
-            let file = e.target.files[0];
-            if (!file) return;
-
-            let reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    let data = new Uint8Array(e.target.result);
-                    let workbook = XLSX.read(data, {type: 'array'});
-                    let sheetName = workbook.SheetNames[0];
-                    let rawData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {defval: ""});
-
-                    let matchCount = 0;
-                    rawData.forEach(row => {
-                        let no = String(row['회원번호'] || '').trim();
-                        let paidVal = parseInt(row['수납금액']) || 0;
-                        let settleDateVal = String(row['정산일'] || row['결제일'] || '').trim().split('T')[0];
-                        let billingMonth = String(row['청구월'] || '').replace('/', '-').trim();
-
-                        if (no) {
-                            if (!paymentDataMap[no]) paymentDataMap[no] = {};
-                            
-                            let monthKey = billingMonth || (settleDateVal ? settleDateVal.substring(0, 7) : `${currentModalYear}-10`);
-                            let existing = paymentDataMap[no][monthKey] || {};
-
-                            paymentDataMap[no][monthKey] = {
-                                amount: parseInt(row['공급가액']) || existing.amount || 0,
-                                commission: existing.commission || 0,
-                                paid: paidVal,
-                                paidDate: settleDateVal,
-                                settle: existing.settle || 0,
-                                settleDate: existing.settleDate || '',
-                                unpaid: parseInt(row['미납금액']) || 0
-                            };
-                            matchCount++;
-                        }
-                    });
-
-                    renderPaymentTable();
-                    renderDashboardCharts();
-                    syncToFirebase();
-                    alert(`총 ${matchCount}건의 수금 내역(수납금액 & 정산일)이 매칭 업로드되었습니다.`);
-                } catch (err) {
-                    alert("수금 엑셀 업로드 실패: " + err);
-                }
-            };
-            reader.readAsArrayBuffer(file);
-            e.target.value = '';
-        });
-
+        // 고객관리 표 렌더링 (회원번호, 회원명, 셀 전체 클릭 영역 확대)
         function renderCustomerTable(dataList) {
             let tbody = "";
             dataList.forEach((item, index) => {
@@ -1838,12 +1795,11 @@
                 tbody += `<tr>
                     <td class="text-center"><input type="checkbox" class="cust-check" value="${item.idx}" /></td>
                     <td class="text-center">${item.idx}</td>
-                    <td style="font-weight:600;">
-                        <a href="javascript:void(0)" style="color:#1e293b; text-decoration:none;" onclick="openDetailModal(${item.idx})" title="고객 세부정보 보기">${item.no}</a>
-                    </td>
-                    <td>
-                        <div style="font-weight:700;">${item.name}</div>
-                        <button class="btn-info" onclick="openDetailModal(${item.idx})">정보</button>
+                    <!-- 셀 전체 클릭 가능하도록 굵은 텍스트 및 클릭이벤트 확장 -->
+                    <td class="clickable-cell" onclick="openDetailModal(${item.idx})" title="고객 세부내역 창 열기">${item.no}</td>
+                    <td class="clickable-cell" onclick="openDetailModal(${item.idx})" title="고객 세부내역 창 열기">
+                        <div>${item.name}</div>
+                        <button class="btn-info" style="font-weight:normal;" onclick="event.stopPropagation(); openDetailModal(${item.idx})">정보</button>
                     </td>
                     <td>${item.phone}</td>
                     <td>
@@ -1916,22 +1872,154 @@
             document.getElementById('history-manager-tbody').innerHTML = tbody;
         }
 
+        // 청구관리 표 렌더링 (통합 검색 지원)
         function renderBillingTable() {
             let tbody = "";
+            let query = document.getElementById('searchInput').value.toLowerCase().trim();
+            let selectedYM = document.getElementById('billSelectMonth') ? document.getElementById('billSelectMonth').value : 'ALL';
+
             billingDataList.forEach((b) => {
-                tbody += `<tr>
-                    <td class="text-center"><input type="checkbox" class="bill-check" value="${b.idx}" /></td>
-                    <td class="text-center">${b.idx}</td>
-                    <td style="font-weight:600;">${b.no}</td>
-                    <td style="font-weight:700;">${b.name}</td>
-                    <td class="text-center">${b.month}</td>
-                    <td class="text-right" style="font-weight:700; color:#2563eb;">${b.amount ? b.amount.toLocaleString() + ' 원' : '-'}</td>
-                    <td class="text-center"><span class="badge-status badge-use">${b.status || '청구'}</span></td>
-                    <td>${b.payMethod || '-'}</td>
-                </tr>`;
+                let matchesSearch = (b.no || '').toLowerCase().includes(query) ||
+                                    (b.name || '').toLowerCase().includes(query) ||
+                                    (b.payMethod || '').toLowerCase().includes(query);
+                let matchesYM = (selectedYM === 'ALL') || (b.month === selectedYM);
+
+                if (matchesSearch && matchesYM) {
+                    tbody += `<tr>
+                        <td class="text-center"><input type="checkbox" class="bill-check" value="${b.idx}" /></td>
+                        <td class="text-center">${b.idx}</td>
+                        <td style="font-weight:600;">${b.no}</td>
+                        <td style="font-weight:700;">${b.name}</td>
+                        <td class="text-center">${b.month}</td>
+                        <td class="text-right" style="font-weight:700; color:#2563eb;">${b.amount ? b.amount.toLocaleString() + ' 원' : '-'}</td>
+                        <td class="text-center"><span class="badge-status badge-use">${b.status || '청구'}</span></td>
+                        <td>${b.payMethod || '-'}</td>
+                    </tr>`;
+                }
             });
             document.getElementById('billing-table-body').innerHTML = tbody;
             if (document.getElementById('selectAllBilling')) document.getElementById('selectAllBilling').checked = false;
+        }
+
+        // 수금관리 메인 테이블 (회원번호/회원명 클릭 영역 확대)
+        function renderPaymentTableContent(dataList) {
+            let tbody = "";
+            let selectedYM = document.getElementById('paySelectMonth') ? document.getElementById('paySelectMonth').value : `${currentModalYear}-10`;
+
+            dataList.forEach((item, index) => {
+                let summary = getYearlySummary(item.no, currentModalYear);
+                let statusBadge = item.status === '사용' ? '<span class="badge-status badge-use">사용</span>' : '<span class="badge-status badge-stop">'+item.status+'</span>';
+
+                let bAmt = getBillingAmountForMonth(item.no, selectedYM);
+                let billDisplay = (bAmt !== null && bAmt > 0) ? `${bAmt.toLocaleString()} 원` : '-';
+                let commissionDisplay = (item.commission && item.commission > 0) ? `${item.commission.toLocaleString()} 원` : '-';
+
+                tbody += `<tr>
+                    <td class="text-center">${index + 1}</td>
+                    <!-- 클릭 영역 확장 -->
+                    <td class="clickable-cell" onclick="openPaymentDetailModal('${item.no}')" title="수금 상세 내역 창 열기">${item.no}</td>
+                    <td class="clickable-cell" onclick="openPaymentDetailModal('${item.no}')" title="수금 상세 내역 창 열기">${item.name}</td>
+                    <td>${statusBadge}</td>
+                    <td>${item.agency || '-'}</td>
+                    <td>${item.store || '-'}</td>
+                    <td>${item.manager || '-'}</td>
+                    <td class="text-right" style="color:#1e293b;">${billDisplay}</td>
+                    <td class="text-right" style="color:#1e293b;">${commissionDisplay}</td>
+                    <td class="text-right" style="color:#1e293b; font-weight:600;">${summary.paid.toLocaleString()} 원</td>
+                    <td class="text-right" style="color:#1e293b; font-weight:600;">${summary.settle.toLocaleString()} 원</td>
+                    <td class="text-right" style="color:${summary.unpaid > 0 ? '#dc2626' : '#1e293b'}; font-weight:700;">${summary.unpaid.toLocaleString()} 원</td>
+                    <td class="text-right" style="color:${summary.unsettled > 0 ? '#dc2626' : '#1e293b'}; font-weight:700;">${summary.unsettled.toLocaleString()} 원</td>
+                </tr>`;
+            });
+            document.getElementById('payment-table-body').innerHTML = tbody;
+        }
+
+        // 삭제된 고객 휴지통 목록 렌더링 및 복구 제어
+        function renderTrashTable() {
+            let tbody = "";
+            deletedCustomerTrashList.forEach((t, idx) => {
+                tbody += `<tr>
+                    <td class="text-center">${idx + 1}</td>
+                    <td style="font-weight:600;">${t.cust.no}</td>
+                    <td style="font-weight:700;">${t.cust.name}</td>
+                    <td style="font-size:11px; color:#64748b;">${t.deletedAt}</td>
+                    <td><span class="log-user">${t.deletedBy}</span></td>
+                    <td class="text-center">
+                        <button class="btn btn-primary" style="font-size:11px; padding:3px 8px;" onclick="restoreDeletedCustomer(${idx})">복구하기</button>
+                    </td>
+                </tr>`;
+            });
+            if (deletedCustomerTrashList.length === 0) {
+                tbody = `<tr><td colspan="6" class="text-center" style="color:#94a3b8; padding:20px;">휴지통에 삭제된 고객 내역이 없습니다.</td></tr>`;
+            }
+            document.getElementById('trash-list-tbody').innerHTML = tbody;
+        }
+
+        // 고객 데이터 완벽 삭제 및 종속 이력 동시 제거 (휴지통 보관)
+        function deleteCustomer() {
+            let idx = parseInt(document.getElementById('edit_idx').value);
+            let item = customerDataList.find(x => x.idx === idx);
+            if (!item) return;
+
+            if (!confirm(`정말로 [${item.name}] 고객 정보를 삭제하시겠습니까?\n삭제된 이력은 관리자맵 휴지통에서 언제든 복구할 수 있습니다.`)) return;
+
+            let nowStr = new Date().toLocaleString('ko-KR');
+            let userStr = currentUser ? currentUser.id : 'Admin';
+
+            // 휴지통에 기존 종속 데이터 보관
+            deletedCustomerTrashList.unshift({
+                cust: item,
+                payMap: paymentDataMap[item.no] || null,
+                histList: contractHistoryMap[item.no] || null,
+                docList: docDataMap[item.no] || null,
+                counselList: counselDataMap[item.no] || null,
+                deletedAt: nowStr,
+                deletedBy: userStr
+            });
+
+            // 원본 데이터 목록에서 종속 내역까지 완전 삭제
+            customerDataList = customerDataList.filter(x => x.idx !== idx);
+            delete paymentDataMap[item.no];
+            delete contractHistoryMap[item.no];
+            delete docDataMap[item.no];
+            delete counselDataMap[item.no];
+
+            updateSelectOptions();
+            updateTabBadges();
+            filterCustomerTable();
+            renderHistoryManagerTable();
+            renderTrashTable();
+            updateKPIs();
+            renderDashboardCharts();
+            closeModal('detailModal');
+            syncToFirebase();
+            alert("고객 정보 및 관련 이력이 안전하게 삭제 후 휴지통으로 이동되었습니다.");
+        }
+
+        // 휴지통 원상 복구 함수
+        function restoreDeletedCustomer(trashIdx) {
+            let trashItem = deletedCustomerTrashList[trashIdx];
+            if (!trashItem) return;
+
+            if (!confirm(`[${trashItem.cust.name}] 고객 정보와 삭제된 이력을 원상 복구하시겠습니까?`)) return;
+
+            customerDataList.unshift(trashItem.cust);
+            if (trashItem.payMap) paymentDataMap[trashItem.cust.no] = trashItem.payMap;
+            if (trashItem.histList) contractHistoryMap[trashItem.cust.no] = trashItem.histList;
+            if (trashItem.docList) docDataMap[trashItem.cust.no] = trashItem.docList;
+            if (trashItem.counselList) counselDataMap[trashItem.cust.no] = trashItem.counselList;
+
+            deletedCustomerTrashList.splice(trashIdx, 1);
+
+            updateSelectOptions();
+            updateTabBadges();
+            filterCustomerTable();
+            renderHistoryManagerTable();
+            renderTrashTable();
+            updateKPIs();
+            renderDashboardCharts();
+            syncToFirebase();
+            alert("고객 정보와 관련 이력이 성공적으로 완벽 복구되었습니다.");
         }
 
         function renderAdminUsersTable() {
@@ -2217,487 +2305,22 @@
             alert("수금 및 정산 메모 정보가 저장되었습니다.");
         }
 
-        function updateSingleHistory(custNo, hIdx) {
-            if (!contractHistoryMap[custNo] || !contractHistoryMap[custNo][hIdx]) return;
-
-            let newType = document.getElementById(`hm_type_${custNo}_${hIdx}`).value;
-            let newDate = document.getElementById(`hm_date_${custNo}_${hIdx}`).value;
-            let newMemo = document.getElementById(`hm_memo_${custNo}_${hIdx}`).value.trim();
-
-            contractHistoryMap[custNo][hIdx].type = newType;
-            contractHistoryMap[custNo][hIdx].date = newDate;
-            contractHistoryMap[custNo][hIdx].memo = newMemo;
-
-            logEditRecord('CUST', custNo, `계약이력 수정 (${newType}, ${newDate})`);
-
-            renderHistoryManagerTable();
-            filterCustomerTable();
-            syncToFirebase();
-            alert("계약 이력이 수정되었습니다.");
-        }
-
-        function deleteSingleHistory(custNo, hIdx) {
-            if (!confirm("이 계약 이력을 삭제하시겠습니까?")) return;
-            if (contractHistoryMap[custNo]) {
-                contractHistoryMap[custNo].splice(hIdx, 1);
+        function clearSingleValue(no, monthStr, type) {
+            if (paymentDataMap[no] && paymentDataMap[no][monthStr]) {
+                if (type === 'paid') {
+                    paymentDataMap[no][monthStr].paid = 0;
+                    paymentDataMap[no][monthStr].paidDate = '';
+                } else if (type === 'settle') {
+                    paymentDataMap[no][monthStr].settle = 0;
+                    paymentDataMap[no][monthStr].settleDate = '';
+                }
             }
-            logEditRecord('CUST', custNo, `계약이력 삭제`);
-            renderHistoryManagerTable();
-            filterCustomerTable();
-            syncToFirebase();
-            alert("계약 이력이 삭제되었습니다.");
-        }
-
-        function saveContractHistory() {
-            let no = document.getElementById('h_cust_no').value;
-            let type = document.getElementById('h_type').value;
-            let date = document.getElementById('h_date').value;
-            let memo = document.getElementById('h_memo').value.trim();
-            let fileInput = document.getElementById('h_file');
-            let fileName = fileInput.files.length > 0 ? fileInput.files[0].name : '';
-
-            if (!contractHistoryMap[no]) contractHistoryMap[no] = [];
-
-            contractHistoryMap[no].unshift({
-                type: type,
-                date: date,
-                memo: memo,
-                fileName: fileName
-            });
-
-            logEditRecord('CUST', no, `신규 계약이력 추가 (${type}, ${date})`);
-
-            document.getElementById('h_date').value = '';
-            document.getElementById('h_memo').value = '';
-            fileInput.value = '';
-
-            renderHistoryList(no);
-            filterCustomerTable();
-            renderHistoryManagerTable();
-            syncToFirebase();
-            alert("새 계약 이력이 추가되었습니다.");
-        }
-
-        function deleteContractHistory(no, idx) {
-            if (!confirm("이 계약 이력을 삭제하시겠습니까?")) return;
-            if (contractHistoryMap[no]) {
-                contractHistoryMap[no].splice(idx, 1);
-            }
-            logEditRecord('CUST', no, `계약이력 항목 삭제`);
-            renderHistoryList(no);
-            filterCustomerTable();
-            renderHistoryManagerTable();
-            syncToFirebase();
-        }
-
-        function openDocModal(no) {
-            let cust = customerDataList.find(c => c.no === no);
-            if (!cust) return;
-
-            document.getElementById('doc_cust_no').value = cust.no;
-            document.getElementById('doc_cust_info').innerText = `[${cust.no}] ${cust.name} 가맹점 서류 관리`;
-
-            renderDocList(no);
-            openModal('docModal');
-        }
-
-        function renderDocList(no) {
-            let list = docDataMap[no] || [];
-            let container = document.getElementById('docListContainer');
-
-            if (list.length === 0) {
-                container.innerHTML = `<div style="text-align:center; color:#94a3b8; padding:20px;">등록된 서류가 없습니다.</div>`;
-                return;
-            }
-
-            let html = "";
-            list.forEach((d, idx) => {
-                let fileStr = d.fileName ? `<span style="color:#2563eb;">📄 ${d.fileName}</span>` : '파일없음';
-                html += `<div class="history-item">
-                    <div>
-                        <strong>[${d.name}]</strong> ${fileStr} <span class="val-date">(${d.date})</span>
-                    </div>
-                    <button class="btn-danger editable-only" style="font-size:11px; padding:2px 6px;" onclick="deleteDocRecord('${no}', ${idx})">삭제</button>
-                </div>`;
-            });
-            container.innerHTML = html;
-        }
-
-        function saveDocRecord() {
-            let no = document.getElementById('doc_cust_no').value;
-            let docName = document.getElementById('doc_name').value.trim();
-            let fileInput = document.getElementById('doc_file_input');
-            let fileName = fileInput.files.length > 0 ? fileInput.files[0].name : '';
-
-            if (!docName) { alert("서류 이름을 입력해주세요."); return; }
-
-            if (!docDataMap[no]) docDataMap[no] = [];
-            let todayStr = new Date().toISOString().split('T')[0];
-
-            docDataMap[no].unshift({
-                name: docName,
-                fileName: fileName,
-                date: todayStr
-            });
-
-            logEditRecord('CUST', no, `서류 등록 (${docName})`);
-
-            document.getElementById('doc_name').value = '';
-            fileInput.value = '';
-
-            renderDocList(no);
-            syncToFirebase();
-            alert("서류가 정상 등록되었습니다.");
-        }
-
-        function deleteDocRecord(no, idx) {
-            if (!confirm("이 서류 항목을 삭제하시겠습니까?")) return;
-            if (docDataMap[no]) docDataMap[no].splice(idx, 1);
-            logEditRecord('CUST', no, `서류 삭제`);
-            renderDocList(no);
-            syncToFirebase();
-        }
-
-        function openCounselModal(no) {
-            let cust = customerDataList.find(c => c.no === no);
-            if (!cust) return;
-
-            document.getElementById('counsel_cust_no').value = cust.no;
-            document.getElementById('counsel_cust_info').innerText = `[${cust.no}] ${cust.name} 가맹점 상담 내역`;
-
-            renderCounselList(no);
-            openModal('counselModal');
-        }
-
-        function renderCounselList(no) {
-            let list = counselDataMap[no] || [];
-            let container = document.getElementById('counselListContainer');
-
-            if (list.length === 0) {
-                container.innerHTML = `<div style="text-align:center; color:#94a3b8; padding:20px;">등록된 상담내역이 없습니다.</div>`;
-                return;
-            }
-
-            let html = "";
-            list.forEach((c, idx) => {
-                html += `<div class="history-item" style="flex-direction:column; align-items:stretch; gap:6px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <select class="table-input-inline" id="cs_type_${no}_${idx}">
-                                <option value="전화상담" ${c.type === '전화상담' ? 'selected' : ''}>전화상담</option>
-                                <option value="방문상담" ${c.type === '방문상담' ? 'selected' : ''}>방문상담</option>
-                                <option value="이메일" ${c.type === '이메일' ? 'selected' : ''}>이메일</option>
-                                <option value="기타" ${c.type === '기타' ? 'selected' : ''}>기타</option>
-                            </select>
-                            <input type="date" class="table-input-inline" id="cs_date_${no}_${idx}" value="${c.date || ''}" />
-                        </div>
-                        <div>
-                            <button class="btn-action editable-only" style="font-size:11px; padding:2px 6px;" onclick="updateCounselRecord('${no}', ${idx})">수정</button>
-                            <button class="btn-danger editable-only" style="font-size:11px; padding:2px 6px;" onclick="deleteCounselRecord('${no}', ${idx})">삭제</button>
-                        </div>
-                    </div>
-                    <div>
-                        <input type="text" class="table-input-inline" id="cs_text_${no}_${idx}" value="${c.text || ''}" style="width:100%;" />
-                    </div>
-                </div>`;
-            });
-            container.innerHTML = html;
-        }
-
-        function saveCounselRecord() {
-            let no = document.getElementById('counsel_cust_no').value;
-            let date = document.getElementById('counsel_date').value;
-            let type = document.getElementById('counsel_type').value;
-            let text = document.getElementById('counsel_text').value.trim();
-
-            if (!text) { alert("상담 내용을 입력해주세요."); return; }
-
-            if (!counselDataMap[no]) counselDataMap[no] = [];
-
-            counselDataMap[no].unshift({
-                date: date || new Date().toISOString().split('T')[0],
-                type: type,
-                text: text
-            });
-
-            logEditRecord('CUST', no, `상담내역 등록 (${type})`);
-
-            document.getElementById('counsel_text').value = '';
-
-            renderCounselList(no);
-            syncToFirebase();
-            alert("상담 내역이 추가되었습니다.");
-        }
-
-        function updateCounselRecord(no, idx) {
-            if (!counselDataMap[no] || !counselDataMap[no][idx]) return;
-
-            let newType = document.getElementById(`cs_type_${no}_${idx}`).value;
-            let newDate = document.getElementById(`cs_date_${no}_${idx}`).value;
-            let newText = document.getElementById(`cs_text_${no}_${idx}`).value.trim();
-
-            counselDataMap[no][idx].type = newType;
-            counselDataMap[no][idx].date = newDate;
-            counselDataMap[no][idx].text = newText;
-
-            logEditRecord('CUST', no, `상담내역 수정 (${newType})`);
-
-            renderCounselList(no);
-            syncToFirebase();
-            alert("상담 내역이 수정되었습니다.");
-        }
-
-        function deleteCounselRecord(no, idx) {
-            if (!confirm("이 상담 기록을 삭제하시겠습니까?")) return;
-            if (counselDataMap[no]) counselDataMap[no].splice(idx, 1);
-            logEditRecord('CUST', no, `상담내역 삭제`);
-            renderCounselList(no);
-            syncToFirebase();
-        }
-
-        function renderBillingTable() {
-            let tbody = "";
-            billingDataList.forEach((b) => {
-                tbody += `<tr>
-                    <td class="text-center"><input type="checkbox" class="bill-check" value="${b.idx}" /></td>
-                    <td class="text-center">${b.idx}</td>
-                    <td style="font-weight:600;">${b.no}</td>
-                    <td style="font-weight:700;">${b.name}</td>
-                    <td class="text-center">${b.month}</td>
-                    <td class="text-right" style="font-weight:700; color:#2563eb;">${b.amount ? b.amount.toLocaleString() + ' 원' : '-'}</td>
-                    <td class="text-center"><span class="badge-status badge-use">${b.status || '청구'}</span></td>
-                    <td>${b.payMethod || '-'}</td>
-                </tr>`;
-            });
-            document.getElementById('billing-table-body').innerHTML = tbody;
-            if (document.getElementById('selectAllBilling')) document.getElementById('selectAllBilling').checked = false;
-        }
-
-        function saveManualBilling() {
-            let no = document.getElementById('b_no').value.trim();
-            let name = document.getElementById('b_name').value.trim();
-            if (!no || !name) { alert("회원번호와 회원명은 필수입니다."); return; }
-
-            billingDataList.unshift({
-                idx: Date.now(),
-                no: no,
-                name: name,
-                month: document.getElementById('b_month').value.trim() || '2026/10',
-                amount: parseInt(document.getElementById('b_amount').value) || 0,
-                status: document.getElementById('b_status').value.trim() || '청구',
-                payMethod: document.getElementById('b_pay_method').value.trim() || 'CMS'
-            });
-
-            renderBillingTable();
-            closeModal('billingModal');
-            syncToFirebase();
-            alert("청구 정보가 성공적으로 수동 등록되었습니다.");
-        }
-
-        function deleteSelectedBillings() {
-            let selectedIdxs = Array.from(document.querySelectorAll('.bill-check:checked')).map(cb => parseInt(cb.value));
-            if (selectedIdxs.length === 0) {
-                alert("삭제할 청구 항목을 선택해주세요.");
-                return;
-            }
-
-            if (!confirm(`선택한 ${selectedIdxs.length}건의 청구 데이터를 삭제하시겠습니까?`)) return;
-
-            billingDataList = billingDataList.filter(item => !selectedIdxs.includes(item.idx));
-            renderBillingTable();
-            syncToFirebase();
-            alert("선택한 청구 데이터가 삭제되었습니다.");
-        }
-
-        function downloadBillingExcel() {
-            if (billingDataList.length === 0) {
-                alert("다운로드할 청구 데이터가 없습니다.");
-                return;
-            }
-
-            let excelRows = billingDataList.map(b => ({
-                'NO.': b.idx,
-                '회원번호': b.no,
-                '회원명': b.name,
-                '청구월': b.month,
-                '청구금액': b.amount,
-                '수납상태': b.status,
-                '결제수단': b.payMethod
-            }));
-
-            var worksheet = XLSX.utils.json_to_sheet(excelRows);
-            var workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "청구관리");
-            XLSX.writeFile(workbook, "청구관리_내역.xlsx");
-        }
-
-        function getYearlySummary(no, year) {
-            let userPayMap = paymentDataMap[no] || {};
-            let sumPaid = 0, sumSettle = 0, sumUnpaid = 0, sumUnsettled = 0;
-
-            let custItem = customerDataList.find(c => c.no === no);
-
-            for (let m = 1; m <= 12; m++) {
-                let monthKey = `${year}-${String(m).padStart(2, '0')}`;
-                let mData = userPayMap[monthKey] || {};
-
-                let monthBillingAmt = getBillingAmountForMonth(no, monthKey);
-                let pAmt = monthBillingAmt !== null ? monthBillingAmt : (mData.amount !== undefined ? mData.amount : 0);
-                let cAmt = mData.commission !== undefined ? mData.commission : (custItem ? custItem.commission : 0);
-
-                let paidVal = mData.paid || 0;
-                let settleVal = mData.settle || 0;
-                let unpaidVal = mData.unpaid !== undefined ? mData.unpaid : Math.max(0, pAmt - paidVal);
-
-                let unsettledVal = cAmt > 0 ? Math.max(0, cAmt - settleVal) : 0;
-
-                sumPaid += paidVal;
-                sumSettle += settleVal;
-                sumUnpaid += unpaidVal;
-                sumUnsettled += unsettledVal;
-            }
-            return { paid: sumPaid, settle: sumSettle, unpaid: sumUnpaid, unsettled: sumUnsettled };
-        }
-
-        function renderPaymentTable() {
-            filterPaymentTable();
-        }
-
-        function renderPaymentTableContent(dataList) {
-            let tbody = "";
-            dataList.forEach((item, index) => {
-                let summary = getYearlySummary(item.no, currentModalYear);
-                let statusBadge = item.status === '사용' ? '<span class="badge-status badge-use">사용</span>' : '<span class="badge-status badge-stop">'+item.status+'</span>';
-
-                let monthKey = `${currentModalYear}-10`;
-                let bAmt = getBillingAmountForMonth(item.no, monthKey);
-                let billDisplay = (bAmt !== null && bAmt > 0) ? `${bAmt.toLocaleString()} 원` : '-';
-                let commissionDisplay = (item.commission && item.commission > 0) ? `${item.commission.toLocaleString()} 원` : '-';
-
-                tbody += `<tr>
-                    <td class="text-center">${index + 1}</td>
-                    <td style="font-weight:700;">
-                        <a href="javascript:void(0)" style="color:#1e293b; text-decoration:none;" onclick="openPaymentDetailModal('${item.no}')" title="월별 상세 수금내역 보기">${item.no}</a>
-                    </td>
-                    <td style="font-weight:700;">${item.name}</td>
-                    <td>${statusBadge}</td>
-                    <td>${item.agency || '-'}</td>
-                    <td>${item.store || '-'}</td>
-                    <td>${item.manager || '-'}</td>
-                    <td class="text-right" style="color:#1e293b;">${billDisplay}</td>
-                    <td class="text-right" style="color:#1e293b;">${commissionDisplay}</td>
-                    <td class="text-right" style="color:#1e293b; font-weight:600;">${summary.paid.toLocaleString()} 원</td>
-                    <td class="text-right" style="color:#1e293b; font-weight:600;">${summary.settle.toLocaleString()} 원</td>
-                    <td class="text-right" style="color:${summary.unpaid > 0 ? '#dc2626' : '#1e293b'}; font-weight:700;">${summary.unpaid.toLocaleString()} 원</td>
-                    <td class="text-right" style="color:${summary.unsettled > 0 ? '#dc2626' : '#1e293b'}; font-weight:700;">${summary.unsettled.toLocaleString()} 원</td>
-                </tr>`;
-            });
-            document.getElementById('payment-table-body').innerHTML = tbody;
-        }
-
-        function changePaymentYear(delta) {
-            currentModalYear += delta;
-            document.getElementById('p_modal_year_text').innerText = `${currentModalYear}년`;
-            let no = document.getElementById('p_edit_no').value;
-            if (no) renderPaymentModalContent(no);
-        }
-
-        function renderPaymentModalContent(no) {
-            let item = customerDataList.find(x => x.no === no);
-            let userPayMap = paymentDataMap[no] || {};
-            let tbody = "";
-
-            let sumAmt = 0, sumComm = 0, sumPaid = 0, sumSettle = 0, sumUnpaid = 0, sumUnsettled = 0;
-            let hasAmt = false, hasComm = false;
-
-            for (let m = 1; m <= 12; m++) {
-                let monthStr = `${currentModalYear}-${String(m).padStart(2, '0')}`;
-                let mData = userPayMap[monthStr] || {};
-
-                let bAmt = getBillingAmountForMonth(no, monthStr);
-                let cAmt = mData.commission !== undefined ? mData.commission : (item ? item.commission : 0);
-
-                if (bAmt !== null && bAmt > 0) hasAmt = true;
-                if (cAmt > 0) hasComm = true;
-
-                let pAmt = bAmt !== null ? bAmt : 0;
-                let paidAmt = mData.paid || 0;
-                let paidDate = mData.paidDate || ''; 
-                let settleAmt = mData.settle || 0;
-                let settleDate = mData.settleDate || ''; 
-                let unpaidAmt = mData.unpaid !== undefined ? mData.unpaid : Math.max(0, pAmt - paidAmt);
-                
-                let unsettledAmt = cAmt > 0 ? Math.max(0, cAmt - settleAmt) : 0;
-
-                sumAmt += pAmt;
-                sumComm += cAmt;
-                sumPaid += paidAmt;
-                sumSettle += settleAmt;
-                sumUnpaid += unpaidAmt;
-                sumUnsettled += unsettledAmt;
-
-                let pAmtDisplay = (bAmt !== null && bAmt > 0) ? bAmt.toLocaleString() : '-';
-                let cAmtDisplay = (cAmt > 0) ? cAmt.toLocaleString() : '-';
-
-                let paidHtml = paidAmt > 0 
-                    ? `<div class="val-item">
-                         <span class="val-date">${paidDate}</span>
-                         <span>${paidAmt.toLocaleString()}</span>
-                         <button class="btn-mini-x editable-only" onclick="clearSingleValue('${no}', '${monthStr}', 'paid')" title="수납 데이터 삭제">✕</button>
-                       </div>`
-                    : `<span style="color:#cbd5e1;">-</span>`;
-
-                let settleHtml = settleAmt > 0 
-                    ? `<div class="val-item">
-                         <span class="val-date">${settleDate}</span>
-                         <span>${settleAmt.toLocaleString()}</span>
-                         <button class="btn-mini-x editable-only" onclick="clearSingleValue('${no}', '${monthStr}', 'settle')" title="정산 데이터 삭제">✕</button>
-                       </div>`
-                    : `<span style="color:#cbd5e1;">-</span>`;
-
-                tbody += `<tr>
-                    <td class="text-center" style="font-weight:600; background:#f8fafc;">${monthStr}</td>
-                    <td class="text-right">${pAmtDisplay}</td>
-                    <td class="text-right">${cAmtDisplay}</td>
-                    <td class="text-right">${paidHtml}</td>
-                    <td class="text-right">${settleHtml}</td>
-                    <td class="text-right" style="color:${unpaidAmt > 0 ? '#dc2626' : '#1e293b'}; font-weight:700;">${unpaidAmt.toLocaleString()}</td>
-                    <td class="text-right" style="color:${unsettledAmt > 0 ? '#dc2626' : '#1e293b'}; font-weight:700;">${unsettledAmt.toLocaleString()}</td>
-                </tr>`;
-            }
-
-            document.getElementById('payment-modal-tbody').innerHTML = tbody;
-
-            document.getElementById('sum_product').innerText = hasAmt ? sumAmt.toLocaleString() : '-';
-            document.getElementById('sum_commission').innerText = hasComm ? sumComm.toLocaleString() : '-';
-            document.getElementById('sum_paid').innerText = sumPaid.toLocaleString();
-            document.getElementById('sum_settle').innerText = sumSettle.toLocaleString();
-            document.getElementById('sum_unpaid').innerText = sumUnpaid.toLocaleString();
-            document.getElementById('sum_unsettled').innerText = sumUnsettled.toLocaleString();
-
-            let memoInfo = userPayMap['MEMO'] || {};
-            document.getElementById('p_memo_date').value = memoInfo.date || '';
-            document.getElementById('p_memo_text').value = memoInfo.text || '';
-        }
-
-        function deleteSelectedCustomers() {
-            let selectedIdxs = Array.from(document.querySelectorAll('.cust-check:checked')).map(cb => parseInt(cb.value));
-            if (selectedIdxs.length === 0) {
-                alert("삭제할 고객을 선택해주세요.");
-                return;
-            }
-
-            if (!confirm(`선택한 ${selectedIdxs.length}명의 고객 정보를 삭제하시겠습니까?`)) return;
-
-            customerDataList = customerDataList.filter(item => !selectedIdxs.includes(item.idx));
-            updateSelectOptions();
-            updateTabBadges();
-            filterCustomerTable();
-            renderHistoryManagerTable();
-            updateKPIs();
+            logEditRecord('PAY', no, `${monthStr}월 ${type === 'paid' ? '수납' : '정산'} 항목 삭제`);
+            renderPaymentModalContent(no);
+            renderPayEditLog(no);
+            renderPaymentTable();
             renderDashboardCharts();
             syncToFirebase();
-            alert("선택한 고객 데이터가 삭제되었습니다.");
         }
 
         function downloadSelectedExcel() {
@@ -2769,22 +2392,6 @@
             var workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "수금관리");
             XLSX.writeFile(workbook, "수금관리_내역.xlsx");
-        }
-
-        function deleteCustomer() {
-            let idx = parseInt(document.getElementById('edit_idx').value);
-            if (!confirm("정말로 이 고객 정보를 삭제하시겠습니까?")) return;
-
-            customerDataList = customerDataList.filter(x => x.idx !== idx);
-            updateSelectOptions();
-            updateTabBadges();
-            filterCustomerTable();
-            renderHistoryManagerTable();
-            updateKPIs();
-            renderDashboardCharts();
-            closeModal('detailModal');
-            syncToFirebase();
-            alert("고객 정보가 삭제되었습니다.");
         }
 
         function saveManualCustomer() {
