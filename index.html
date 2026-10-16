@@ -255,7 +255,7 @@
 </head>
 <body>
 
-    <!-- 단색 전체화면 최초 로그인 화면 (빈 칸으로 시작) -->
+    <!-- 단색 전체화면 최초 로그인 화면 (예시 텍스트 완전 제거) -->
     <div id="loginPageContainer">
         <div class="login-box-card">
             <div class="login-brand-head">CMS ERP System</div>
@@ -263,11 +263,11 @@
             
             <div class="login-input-group">
                 <label>아이디</label>
-                <input type="text" id="kcd_login_id" value="" placeholder="아이디 입력 (예: psei)">
+                <input type="text" id="kcd_login_id" value="" placeholder="아이디 입력">
             </div>
             <div class="login-input-group">
                 <label>비밀번호</label>
-                <input type="password" id="kcd_login_pw" value="" placeholder="비밀번호 입력 (예: 1111)">
+                <input type="password" id="kcd_login_pw" value="" placeholder="비밀번호 입력">
             </div>
             <button class="btn-main-login" onclick="processKCDLogin()">시스템 로그인</button>
             <div style="text-align: center; margin-top: 16px;">
@@ -284,8 +284,8 @@
                 <span style="cursor:pointer;" onclick="closeModal('findPwModal')">✕</span>
             </div>
             <div class="form-group"><label>아이디</label><input type="text" id="find_id" placeholder="아이디 입력"></div>
-            <div class="form-group"><label>이름</label><input type="text" id="find_name" placeholder="이름 입력 (예: 박세이)"></div>
-            <div class="form-group"><label>핸드폰 번호 또는 이메일</label><input type="text" id="find_contact" placeholder="010-9324-1452 또는 psei@imupos.com"></div>
+            <div class="form-group"><label>이름</label><input type="text" id="find_name" placeholder="이름 입력"></div>
+            <div class="form-group"><label>핸드폰 번호 또는 이메일</label><input type="text" id="find_contact" placeholder="핸드폰 번호 또는 이메일 입력"></div>
             <div class="form-group" style="border-top:1px dashed #e2e8f0; padding-top:10px; margin-top:10px;">
                 <label style="color:#2563eb;">새로 변경할 비밀번호</label>
                 <input type="password" id="find_new_pw" placeholder="새 비밀번호 입력">
@@ -1134,7 +1134,7 @@
                                     <th>핸드폰 번호</th>
                                     <th>이메일 주소</th>
                                     <th class="text-center">계정 상태</th>
-                                    <th class="text-center">관리 (권한 변경/블락)</th>
+                                    <th class="text-center">관리 (권한 변경/초기화/블락)</th>
                                 </tr>
                             </thead>
                             <tbody id="admin-users-tbody"></tbody>
@@ -1438,7 +1438,6 @@
             alert(`${target.id}님 (${target.role} 권한)으로 로그인 되었습니다.`);
         }
 
-        // 이름 + 연락처 검증 후 새 비밀번호 직접 변경
         function processFindAndResetPw() {
             let id = document.getElementById('find_id').value.trim();
             let name = document.getElementById('find_name').value.trim();
@@ -1450,7 +1449,7 @@
                 return;
             }
 
-            let target = userAccountsList.find(u => u.id === id && u.phone === contact || u.email === contact);
+            let target = userAccountsList.find(u => u.id === id && (u.phone === contact || u.email === contact));
             if (target) {
                 target.pw = newPw;
                 syncToFirebase();
@@ -2105,50 +2104,6 @@
             alert("고객 정보 및 관련 이력이 삭제 후 휴지통으로 이동되었습니다.");
         }
 
-        function deleteSelectedCustomers() {
-            let selectedIdxs = Array.from(document.querySelectorAll('#customer-table-body .cust-check:checked')).map(cb => parseInt(cb.value));
-            if (selectedIdxs.length === 0) {
-                alert("삭제할 고객을 선택해주세요.");
-                return;
-            }
-
-            if (!confirm(`선택한 ${selectedIdxs.length}명의 고객 정보를 삭제하시겠습니까?`)) return;
-
-            let nowStr = new Date().toLocaleString('ko-KR');
-            let userStr = currentUser ? currentUser.id : 'Admin';
-
-            selectedIdxs.forEach(sIdx => {
-                let item = customerDataList.find(x => x.idx === sIdx);
-                if (item) {
-                    deletedCustomerTrashList.unshift({
-                        cust: item,
-                        payMap: paymentDataMap[item.no] || null,
-                        histList: contractHistoryMap[item.no] || null,
-                        docList: docDataMap[item.no] || null,
-                        counselList: counselDataMap[item.no] || null,
-                        deletedAt: nowStr,
-                        deletedBy: userStr
-                    });
-                    delete paymentDataMap[item.no];
-                    delete contractHistoryMap[item.no];
-                    delete docDataMap[item.no];
-                    delete counselDataMap[item.no];
-                }
-            });
-
-            customerDataList = customerDataList.filter(item => !selectedIdxs.includes(item.idx));
-            
-            updateSelectOptions();
-            updateTabBadges();
-            filterCustomerTable();
-            renderHistoryManagerTable();
-            renderTrashTable();
-            updateKPIs();
-            renderDashboardCharts();
-            syncToFirebase();
-            alert("선택한 고객 데이터가 삭제되었습니다.");
-        }
-
         function restoreDeletedCustomer(trashIdx) {
             let trashItem = deletedCustomerTrashList[trashIdx];
             if (!trashItem) return;
@@ -2196,12 +2151,25 @@
                     <td>${u.email || '-'}</td>
                     <td class="text-center">${statusBadge}</td>
                     <td class="text-center">
-                        <button class="btn-action" onclick="toggleUserBlock(${idx})">${u.isBlocked ? '차단해제' : '계정차단'}</button>
+                        <button class="btn-action" style="font-size:11px;" onclick="resetUserPwToDefault(${idx})">비밀번호 초기화(1111)</button>
+                        <button class="btn-action" style="font-size:11px;" onclick="toggleUserBlock(${idx})">${u.isBlocked ? '차단해제' : '계정차단'}</button>
                         <button class="btn-danger" style="font-size:11px; padding:3px 6px;" onclick="deleteUserAccount(${idx})">삭제</button>
                     </td>
                 </tr>`;
             });
             document.getElementById('admin-users-tbody').innerHTML = tbody;
+        }
+
+        // 관리자가 해당 사용자의 비밀번호를 '1111'로 즉시 초기화하는 기능
+        function resetUserPwToDefault(idx) {
+            let targetUser = userAccountsList[idx];
+            if (!targetUser) return;
+
+            if (confirm(`[${targetUser.id}] 사용자의 비밀번호를 '1111'로 초기화하시겠습니까?`)) {
+                userAccountsList[idx].pw = "1111";
+                syncToFirebase();
+                alert(`[${targetUser.id}] 계정의 비밀번호가 '1111'로 초기화되었습니다.`);
+            }
         }
 
         function openAddUserModal() {
