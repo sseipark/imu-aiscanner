@@ -155,14 +155,52 @@
 
         .table-input-inline { padding: 4px 6px; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none; }
 
-        /* 계약이력 전체 리스트 스타일 */
         .history-tag-item { display: flex; flex-direction: column; gap: 2px; font-size: 11px; font-weight: 600; color: #2563eb; margin-bottom: 3px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 2px; }
         .history-tag-item:last-child { border-bottom: none; margin-bottom: 0; }
+
+        .log-list-box { max-height: 140px; overflow-y: auto; border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 6px; padding: 8px; font-size: 11px; margin-top: 10px; }
+        .log-item { padding: 4px 0; border-bottom: 1px dashed #e2e8f0; color: #475569; }
+        .log-item:last-child { border-bottom: none; }
+        .log-user { font-weight: 700; color: #2563eb; }
+
+        .editable-only { display: inline-flex; }
+        body.readonly-mode .editable-only { display: none !important; }
 
         #fileInput, #paymentFileInput, #billingFileInput { display: none; }
     </style>
 </head>
 <body>
+
+    <!-- 로그인 모달 -->
+    <div id="loginModal" class="modal-overlay">
+        <div class="modal-card" style="width: 400px;">
+            <div class="modal-header">
+                <span>CMS ERP 시스템 로그인</span>
+            </div>
+            <div class="form-group"><label>아이디</label><input type="text" id="login_id" placeholder="아이디 (예: psei)"></div>
+            <div class="form-group"><label>비밀번호</label><input type="password" id="login_pw" placeholder="비밀번호 (예: 1111)"></div>
+            <div style="display:flex; justify-content: space-between; align-items: center; margin-top: 16px;">
+                <a href="javascript:void(0)" style="font-size:12px; color:#2563eb;" onclick="openModal('findPwModal')">비밀번호 찾기</a>
+                <button class="btn btn-primary" onclick="processLogin()">로그인</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 비밀번호 찾기 모달 -->
+    <div id="findPwModal" class="modal-overlay">
+        <div class="modal-card" style="width: 420px;">
+            <div class="modal-header">
+                <span>비밀번호 찾기</span>
+                <span style="cursor:pointer;" onclick="closeModal('findPwModal')">✕</span>
+            </div>
+            <div class="form-group"><label>아이디</label><input type="text" id="find_id" placeholder="아이디"></div>
+            <div class="form-group"><label>핸드폰 번호 또는 이메일</label><input type="text" id="find_contact" placeholder="010-9324-1452 또는 psei@imupos.com"></div>
+            <div style="display:flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
+                <button class="btn btn-outline" onclick="closeModal('findPwModal')">취소</button>
+                <button class="btn btn-primary" onclick="processFindPw()">비밀번호 찾기</button>
+            </div>
+        </div>
+    </div>
 
     <!-- 1. 신규 고객 수동 등록 모달 -->
     <div id="customerModal" class="modal-overlay">
@@ -198,9 +236,9 @@
         </div>
     </div>
 
-    <!-- 2. 고객 세부내역 수정/삭제 모달 -->
+    <!-- 2. 고객 세부내역 및 수정이력 확인 모달 -->
     <div id="detailModal" class="modal-overlay">
-        <div class="modal-card">
+        <div class="modal-card modal-card-large" style="width: 780px;">
             <div class="modal-header">
                 <span>고객 세부 내역 및 정보 수정</span>
                 <span style="cursor:pointer;" onclick="closeModal('detailModal')">✕</span>
@@ -228,11 +266,19 @@
                 <div class="form-group"><label>가맹점</label><input type="text" id="edit_store"></div>
                 <div class="form-group"><label>영업대표</label><input type="text" id="edit_manager"></div>
             </div>
+
+            <div style="margin-top:16px; border-top:1px solid #e2e8f0; padding-top:10px;">
+                <div style="font-size:12px; font-weight:700; color:#0f172a;">📝 수정 및 변경 이력 로그 (누가 수정했는지 확인)</div>
+                <div class="log-list-box" id="custEditLogContainer">
+                    <div style="color:#94a3b8; text-align:center; padding:10px;">수정이력이 없습니다.</div>
+                </div>
+            </div>
+
             <div style="display:flex; justify-content: space-between; align-items:center; margin-top: 20px;">
-                <button class="btn btn-danger" onclick="deleteCustomer()">고객 삭제</button>
+                <button class="btn btn-danger editable-only" onclick="deleteCustomer()">고객 삭제</button>
                 <div style="display:flex; gap: 8px;">
                     <button class="btn btn-outline" onclick="closeModal('detailModal')">취소</button>
-                    <button class="btn btn-primary" onclick="updateCustomerDetail()">수정 저장</button>
+                    <button class="btn btn-primary editable-only" onclick="updateCustomerDetail()">수정 저장</button>
                 </div>
             </div>
         </div>
@@ -309,7 +355,7 @@
 
             <div style="display:flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
                 <button class="btn btn-outline" onclick="closeModal('contractHistoryModal')">닫기</button>
-                <button class="btn btn-primary" onclick="saveContractHistory()">이력 추가 저장</button>
+                <button class="btn btn-primary editable-only" onclick="saveContractHistory()">이력 추가 저장</button>
             </div>
         </div>
     </div>
@@ -345,12 +391,12 @@
 
             <div style="display:flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
                 <button class="btn btn-outline" onclick="closeModal('docModal')">닫기</button>
-                <button class="btn btn-primary" onclick="saveDocRecord()">서류 저장</button>
+                <button class="btn btn-primary editable-only" onclick="saveDocRecord()">서류 저장</button>
             </div>
         </div>
     </div>
 
-    <!-- 6. 상담 내역 전용 관리 모달 (수정 및 삭제 기능 구현) -->
+    <!-- 6. 상담 내역 관리 모달 -->
     <div id="counselModal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-header">
@@ -392,7 +438,7 @@
 
             <div style="display:flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
                 <button class="btn btn-outline" onclick="closeModal('counselModal')">닫기</button>
-                <button class="btn btn-primary" onclick="saveCounselRecord()">상담 기록 저장</button>
+                <button class="btn btn-primary editable-only" onclick="saveCounselRecord()">상담 기록 저장</button>
             </div>
         </div>
     </div>
@@ -420,7 +466,7 @@
                 </div>
             </div>
 
-            <div class="table-container payment-modal-table" style="max-height: 320px; margin-bottom: 16px;">
+            <div class="table-container payment-modal-table" style="max-height: 280px; margin-bottom: 12px;">
                 <table>
                     <thead>
                         <tr>
@@ -448,10 +494,9 @@
                 </table>
             </div>
 
-            <!-- 수기 개별 선택 등록 -->
-            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:14px; margin-bottom:14px;">
+            <div class="editable-only" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; margin-bottom:12px; width:100%;">
                 <div style="font-weight:700; font-size:13px; color:#0f172a; margin-bottom:8px;">➕ 수납 / 정산 내역 개별 등록</div>
-                <div style="display:grid; grid-template-columns: 110px 100px 150px 1fr auto; gap:8px; align-items:end;">
+                <div style="display:grid; grid-template-columns: 110px 100px 150px 1fr auto; gap:8px; align-items:end; width:100%;">
                     <div class="form-group" style="margin-bottom:0;">
                         <label>구분 선택</label>
                         <select id="p_new_type">
@@ -480,8 +525,15 @@
                 </div>
             </div>
 
-            <div style="border-top:1px solid #e2e8f0; padding-top:12px;">
-                <div style="font-weight:700; font-size:13px; margin-bottom:8px; color:#0f172a;">📝 비고 작성 및 메모 관리</div>
+            <div style="border-top:1px solid #e2e8f0; padding-top:10px; margin-bottom:12px;">
+                <div style="font-weight:700; font-size:12px; color:#0f172a; margin-bottom:4px;">📜 수납/정산 수정 및 등록 이력 (누가 수정했는지 기록)</div>
+                <div class="log-list-box" id="payEditLogContainer">
+                    <div style="color:#94a3b8; text-align:center; padding:10px;">수정이력이 없습니다.</div>
+                </div>
+            </div>
+
+            <div style="border-top:1px solid #e2e8f0; padding-top:10px;">
+                <div style="font-weight:700; font-size:13px; margin-bottom:6px; color:#0f172a;">📝 비고 작성 및 메모 관리</div>
                 <div style="display:grid; grid-template-columns: 160px 1fr auto; gap:10px; align-items:start;">
                     <div class="form-group" style="margin-bottom:0;">
                         <label>작성 일자</label>
@@ -489,15 +541,15 @@
                     </div>
                     <div class="form-group" style="margin-bottom:0;">
                         <label>비고 내용</label>
-                        <input type="text" id="p_memo_text" placeholder="해당 회원에 대한 특이사항 및 메모를 입력하세요.">
+                        <input type="text" id="p_memo_text" placeholder="특이사항 및 메모를 입력하세요.">
                     </div>
-                    <button class="btn btn-outline" style="margin-top:20px; padding: 8px 16px;" onclick="savePaymentModalData()">전체 저장</button>
+                    <button class="btn btn-outline editable-only" style="margin-top:20px; padding: 8px 16px;" onclick="savePaymentModalData()">전체 저장</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 좌측 사이드바 (신규 대카테고리 페이백 및 중카테고리 페이백 정산 추가) -->
+    <!-- 좌측 사이드바 -->
     <div class="sidebar">
         <div class="sidebar-brand">CMS ERP System</div>
         <div class="sidebar-menu">
@@ -537,13 +589,21 @@
                 </div>
             </div>
 
-            <!-- 신규 추가: 대카테고리 페이백 > 중카테고리 페이백 정산 -->
             <div class="parent-menu open" onclick="toggleParent(this)">
                 <span>페이백</span><span class="arrow-icon">▼</span>
             </div>
             <div class="submenu open">
                 <div class="sub-item" onclick="switchCategory('payback', this, '페이백 > 페이백 정산')">
                     페이백 정산
+                </div>
+            </div>
+
+            <div class="parent-menu open admin-only-menu" id="adminMenuBlock" style="display:none;" onclick="toggleParent(this)">
+                <span>관리자맵</span><span class="arrow-icon">▼</span>
+            </div>
+            <div class="submenu open admin-only-menu" id="adminSubMenuBlock" style="display:none;">
+                <div class="sub-item" onclick="switchCategory('adminMap', this, '관리자맵 > 계정 및 권한 관리')">
+                    계정 및 권한 관리
                 </div>
             </div>
         </div>
@@ -557,6 +617,12 @@
                 <div class="search-box">
                     <input type="text" id="searchInput" onkeyup="onGlobalSearch()" placeholder="회원번호, 회원명, 전화번호 검색..." />
                 </div>
+
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span id="userStatusBadge" style="font-size:12px; font-weight:700; color:#2563eb; background:#eff6ff; padding:4px 8px; border-radius:4px;">접속자: 박세이(관리자)</span>
+                    <button class="btn btn-outline" style="font-size:12px; padding:6px 10px;" id="loginLogoutBtn" onclick="handleAuthBtnClick()">로그아웃</button>
+                </div>
+
                 <input type="file" id="fileInput" accept=".xlsx, .xls" />
                 <input type="file" id="paymentFileInput" accept=".xlsx, .xls" />
                 <input type="file" id="billingFileInput" accept=".xlsx, .xls" />
@@ -567,6 +633,19 @@
 
             <!-- 1. [대시보드] 뷰 -->
             <div id="view-dashboard" class="view-section active">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                    <h3 style="margin:0; font-size:16px; font-weight:800; color:#0f172a;">📊 대시보드 실적 요약</h3>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <label style="font-size:13px; font-weight:700; color:#475569;">조회 월 선택:</label>
+                        <select id="dashSelectMonth" class="filter-select" style="width:130px;" onchange="renderDashboardCharts()">
+                            <option value="2026-10">2026년 10월</option>
+                            <option value="2026-09">2026년 09월</option>
+                            <option value="2026-08">2026년 08월</option>
+                            <option value="2026-07">2026년 07월</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="kpi-grid">
                     <div class="kpi-card"><div class="kpi-title">총 등록 고객 수</div><div class="kpi-value" id="kpi-stores">0 곳</div></div>
                     <div class="kpi-card"><div class="kpi-title">운영 중인 계약 수</div><div class="kpi-value" style="color:#2563eb;" id="kpi-devices">0 건</div></div>
@@ -651,9 +730,9 @@
                     <h3>
                         <span>가맹점 고객 세부정보 내역</span>
                         <div class="card-actions">
-                            <button class="btn btn-primary" style="font-size: 12px; padding: 6px 12px;" onclick="openModal('customerModal')">등록</button>
-                            <button class="btn btn-danger" style="font-size: 12px; padding: 6px 12px;" onclick="deleteSelectedCustomers()">삭제</button>
-                            <button class="btn btn-excel" style="font-size: 12px; padding: 6px 12px;" onclick="document.getElementById('fileInput').click()">대량업로드</button>
+                            <button class="btn btn-primary editable-only" style="font-size: 12px; padding: 6px 12px;" onclick="openModal('customerModal')">등록</button>
+                            <button class="btn btn-danger editable-only" style="font-size: 12px; padding: 6px 12px;" onclick="deleteSelectedCustomers()">삭제</button>
+                            <button class="btn btn-excel editable-only" style="font-size: 12px; padding: 6px 12px;" onclick="document.getElementById('fileInput').click()">대량업로드</button>
                             <button class="btn btn-outline" style="font-size: 12px; padding: 6px 12px;" onclick="downloadSelectedExcel()">엑셀 다운로드</button>
                         </div>
                     </h3>
@@ -714,9 +793,7 @@
                                     <th class="text-center" style="width:130px;">관리 (수정/삭제)</th>
                                 </tr>
                             </thead>
-                            <tbody id="history-manager-tbody">
-                                <tr><td colspan="8" class="text-center" style="color:#94a3b8; padding:30px;">등록된 계약 이력이 없습니다.</td></tr>
-                            </tbody>
+                            <tbody id="history-manager-tbody"></tbody>
                         </table>
                     </div>
                 </div>
@@ -783,7 +860,7 @@
                     <h3>
                         <span>월별 수금 및 입금 관리 내역</span>
                         <div class="card-actions">
-                            <button class="btn btn-excel" style="font-size: 12px; padding: 6px 12px;" onclick="document.getElementById('paymentFileInput').click()">수금업로드</button>
+                            <button class="btn btn-excel editable-only" style="font-size: 12px; padding: 6px 12px;" onclick="document.getElementById('paymentFileInput').click()">수금업로드</button>
                             <button class="btn btn-outline" style="font-size: 12px; padding: 6px 12px;" onclick="downloadPaymentExcel()">엑셀 다운로드</button>
                         </div>
                     </h3>
@@ -818,9 +895,9 @@
                     <h3>
                         <span>월별 청구 내역 관리</span>
                         <div class="card-actions">
-                            <button class="btn btn-primary" style="font-size: 12px; padding: 6px 12px;" onclick="openModal('billingModal')">등록</button>
-                            <button class="btn btn-danger" style="font-size: 12px; padding: 6px 12px;" onclick="deleteSelectedBillings()">삭제</button>
-                            <button class="btn btn-excel" style="font-size: 12px; padding: 6px 12px;" onclick="document.getElementById('billingFileInput').click()">대량업로드</button>
+                            <button class="btn btn-primary editable-only" style="font-size: 12px; padding: 6px 12px;" onclick="openModal('billingModal')">등록</button>
+                            <button class="btn btn-danger editable-only" style="font-size: 12px; padding: 6px 12px;" onclick="deleteSelectedBillings()">삭제</button>
+                            <button class="btn btn-excel editable-only" style="font-size: 12px; padding: 6px 12px;" onclick="document.getElementById('billingFileInput').click()">대량업로드</button>
                             <button class="btn btn-outline" style="font-size: 12px; padding: 6px 12px;" onclick="downloadBillingExcel()">엑셀 다운로드</button>
                         </div>
                     </h3>
@@ -838,9 +915,7 @@
                                     <th>결제수단</th>
                                 </tr>
                             </thead>
-                            <tbody id="billing-table-body">
-                                <tr><td colspan="8" class="text-center" style="color:#94a3b8; padding:30px;">[대량업로드] 버튼을 통해 청구목록(청구별) 엑셀을 등록해주세요.</td></tr>
-                            </tbody>
+                            <tbody id="billing-table-body"></tbody>
                         </table>
                     </div>
                 </div>
@@ -876,13 +951,13 @@
                 </div>
             </div>
 
-            <!-- 8. [페이백 > 페이백 정산] 신규 뷰 -->
+            <!-- 8. [페이백 > 페이백 정산] 뷰 -->
             <div id="view-payback" class="view-section">
                 <div class="content-card">
                     <h3>
                         <span>페이백 정산 내역 관리</span>
                         <div class="card-actions">
-                            <button class="btn btn-primary" style="font-size: 12px; padding: 6px 12px;" onclick="alert('페이백 내역 등록 준비 중')">등록</button>
+                            <button class="btn btn-primary editable-only" style="font-size: 12px; padding: 6px 12px;" onclick="alert('페이백 내역 등록 준비 중')">등록</button>
                         </div>
                     </h3>
                     <div class="table-container">
@@ -897,14 +972,68 @@
                                     <th>정산 상태</th>
                                 </tr>
                             </thead>
-                            <tbody id="payback-table-body">
-                                <tr><td colspan="6" class="text-center" style="color:#94a3b8; padding:30px;">등록된 페이백 정산 내역이 없습니다.</td></tr>
-                            </tbody>
+                            <tbody id="payback-table-body"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
+            <!-- 9. [관리자맵 > 계정 및 권한 관리] 뷰 -->
+            <div id="view-adminMap" class="view-section">
+                <div class="content-card">
+                    <h3>
+                        <span>아이디별 사용자 권한 및 계정 관리</span>
+                        <div class="card-actions">
+                            <button class="btn btn-primary" style="font-size: 12px; padding: 6px 12px;" onclick="openAddUserModal()">+ 신규 사용자 계정 생성</button>
+                        </div>
+                    </h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="text-center">NO.</th>
+                                    <th>아이디</th>
+                                    <th>비밀번호</th>
+                                    <th>권한 구획</th>
+                                    <th>핸드폰 번호</th>
+                                    <th>이메일 주소</th>
+                                    <th class="text-center">계정 상태</th>
+                                    <th class="text-center">관리 (권한 변경/블락)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-users-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 계정 신규 생성 모달 -->
+    <div id="userAdminModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <span id="userModalTitle">신규 사용자 계정 생성</span>
+                <span style="cursor:pointer;" onclick="closeModal('userAdminModal')">✕</span>
+            </div>
+            <input type="hidden" id="u_edit_mode" value="ADD" />
+            <div class="form-group"><label>아이디</label><input type="text" id="u_id" placeholder="아이디 입력"></div>
+            <div class="form-group"><label>비밀번호</label><input type="password" id="u_pw" placeholder="비밀번호 입력"></div>
+            <div class="form-group">
+                <label>권한 선택</label>
+                <select id="u_role">
+                    <option value="관리자">관리자 (모든 권한 + 관리자맵 접근)</option>
+                    <option value="편집자">편집자 (등록/수정/삭제 가능)</option>
+                    <option value="보기전용">보기전용 (조회만 가능)</option>
+                </select>
+            </div>
+            <div class="form-group"><label>핸드폰 번호</label><input type="text" id="u_phone" placeholder="010-0000-0000"></div>
+            <div class="form-group"><label>이메일 주소</label><input type="text" id="u_email" placeholder="user@example.com"></div>
+            <div style="display:flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
+                <button class="btn btn-outline" onclick="closeModal('userAdminModal')">취소</button>
+                <button class="btn btn-primary" onclick="saveUserAccount()">계정 저장</button>
+            </div>
         </div>
     </div>
 
@@ -929,6 +1058,16 @@
         let billingDataList = [];
         let docDataMap = {};       
         let counselDataMap = {};   
+        let custEditLogMap = {};   
+        let payEditLogMap = {};    
+
+        // 초기 계정 목록 설정 (admin 계정 및 psei 개인 계정 분리)
+        let userAccountsList = [
+            { id: "admin", pw: "1234", role: "관리자", phone: "010-0000-0000", email: "admin@imupos.com", isBlocked: false },
+            { id: "psei", pw: "1111", role: "관리자", phone: "010-9324-1452", email: "psei@imupos.com", isBlocked: false }
+        ];
+
+        let currentUser = { id: "psei", role: "관리자" }; 
 
         let currentModalYear = 2026;
         let currentSortKey = '';
@@ -946,28 +1085,32 @@
             let savedPay = localStorage.getItem('cms_pay_map');
             let savedHist = localStorage.getItem('cms_hist_map');
             let savedBill = localStorage.getItem('cms_bill_list');
-            let savedDoc = localStorage.getItem('cms_doc_map');
-            let savedCounsel = localStorage.getItem('cms_counsel_map');
+            let savedUsers = localStorage.getItem('cms_users_list');
+            let savedCustLog = localStorage.getItem('cms_cust_log');
+            let savedPayLog = localStorage.getItem('cms_pay_log');
 
             if (savedCust) customerDataList = JSON.parse(savedCust);
             if (savedPay) paymentDataMap = JSON.parse(savedPay);
             if (savedHist) contractHistoryMap = JSON.parse(savedHist);
             if (savedBill) billingDataList = JSON.parse(savedBill);
-            if (savedDoc) docDataMap = JSON.parse(savedDoc);
-            if (savedCounsel) counselDataMap = JSON.parse(savedCounsel);
+            if (savedUsers) userAccountsList = JSON.parse(savedUsers);
+            if (savedCustLog) custEditLogMap = JSON.parse(savedCustLog);
+            if (savedPayLog) payEditLogMap = JSON.parse(savedPayLog);
 
+            updateAuthUI();
             updateSelectOptions();
             updateTabBadges();
             filterCustomerTable();
             filterPaymentTable();
             renderBillingTable();
             renderHistoryManagerTable();
+            renderAdminUsersTable();
             updateKPIs();
             renderDashboardCharts();
 
-            // Firebase 실시간 동기화 (타임아웃 2초 예외처리로 무한 로딩 방지)
+            // Firebase 비동기 동기화 (2초 타임아웃 예외처리로 무한로딩 차단)
             let syncTimeout = setTimeout(() => {
-                console.warn("Firebase 네트워크 응답 수신 대기 전환 완료");
+                console.warn("Firebase 네트워크 응답 대기 완료");
             }, 2000);
 
             db.ref('cms_erp_data').on('value', (snapshot) => {
@@ -980,14 +1123,19 @@
                     billingDataList = data.billings || [];
                     docDataMap = data.docs || {};
                     counselDataMap = data.counsels || {};
+                    userAccountsList = data.users || userAccountsList;
+                    custEditLogMap = data.custLogs || {};
+                    payEditLogMap = data.payLogs || {};
 
                     saveLocalStorage();
+                    updateAuthUI();
                     updateSelectOptions();
                     updateTabBadges();
                     filterCustomerTable();
                     filterPaymentTable();
                     renderBillingTable();
                     renderHistoryManagerTable();
+                    renderAdminUsersTable();
                     updateKPIs();
                     renderDashboardCharts();
                 }
@@ -1007,7 +1155,10 @@
                 histories: contractHistoryMap,
                 billings: billingDataList,
                 docs: docDataMap,
-                counsels: counselDataMap
+                counsels: counselDataMap,
+                users: userAccountsList,
+                custLogs: custEditLogMap,
+                payLogs: payEditLogMap
             });
         }
 
@@ -1016,8 +1167,102 @@
             localStorage.setItem('cms_pay_map', JSON.stringify(paymentDataMap));
             localStorage.setItem('cms_hist_map', JSON.stringify(contractHistoryMap));
             localStorage.setItem('cms_bill_list', JSON.stringify(billingDataList));
-            localStorage.setItem('cms_doc_map', JSON.stringify(docDataMap));
-            localStorage.setItem('cms_counsel_map', JSON.stringify(counselDataMap));
+            localStorage.setItem('cms_users_list', JSON.stringify(userAccountsList));
+            localStorage.setItem('cms_cust_log', JSON.stringify(custEditLogMap));
+            localStorage.setItem('cms_pay_log', JSON.stringify(payEditLogMap));
+        }
+
+        function updateAuthUI() {
+            let badge = document.getElementById('userStatusBadge');
+            let btn = document.getElementById('loginLogoutBtn');
+            let adminBlock = document.getElementById('adminMenuBlock');
+            let adminSubBlock = document.getElementById('adminSubMenuBlock');
+
+            if (!currentUser) {
+                badge.innerText = "접속자: 미로그인 (조회 전용)";
+                btn.innerText = "로그인";
+                document.body.classList.add('readonly-mode');
+                adminBlock.style.display = 'none';
+                adminSubBlock.style.display = 'none';
+            } else {
+                badge.innerText = `접속자: ${currentUser.id} (${currentUser.role})`;
+                btn.innerText = "로그아웃";
+
+                if (currentUser.role === '보기전용') {
+                    document.body.classList.add('readonly-mode');
+                    adminBlock.style.display = 'none';
+                    adminSubBlock.style.display = 'none';
+                } else {
+                    document.body.classList.remove('readonly-mode');
+                    if (currentUser.role === '관리자') {
+                        adminBlock.style.display = 'flex';
+                        adminSubBlock.style.display = 'block';
+                    } else {
+                        adminBlock.style.display = 'none';
+                        adminSubBlock.style.display = 'none';
+                    }
+                }
+            }
+        }
+
+        function handleAuthBtnClick() {
+            if (currentUser) {
+                currentUser = null;
+                updateAuthUI();
+                alert("로그아웃 되었습니다. 보기전용 권한으로 전환됩니다.");
+            } else {
+                openModal('loginModal');
+            }
+        }
+
+        function processLogin() {
+            let id = document.getElementById('login_id').value.trim();
+            let pw = document.getElementById('login_pw').value.trim();
+
+            let target = userAccountsList.find(u => u.id === id && u.pw === pw);
+            if (!target) {
+                alert("아이디 또는 비밀번호가 올바르지 않습니다.");
+                return;
+            }
+
+            if (target.isBlocked) {
+                alert("해당 계정은 블락(차단)된 상태입니다. 관리자에게 문의하세요.");
+                return;
+            }
+
+            currentUser = { id: target.id, role: target.role };
+            updateAuthUI();
+            closeModal('loginModal');
+            document.getElementById('login_id').value = '';
+            document.getElementById('login_pw').value = '';
+            alert(`${target.id}님 (${target.role} 권한)으로 로그인 되었습니다.`);
+        }
+
+        function processFindPw() {
+            let id = document.getElementById('find_id').value.trim();
+            let contact = document.getElementById('find_contact').value.trim();
+
+            let target = userAccountsList.find(u => u.id === id && (u.phone === contact || u.email === contact));
+            if (target) {
+                alert(`[비밀번호 확인]\n회원님의 비밀번호는 [ ${target.pw} ] 입니다.`);
+                closeModal('findPwModal');
+            } else {
+                alert("일치하는 계정 정보가 없습니다.");
+            }
+        }
+
+        function logEditRecord(type, custNo, logText) {
+            let nowStr = new Date().toLocaleString('ko-KR');
+            let userStr = currentUser ? currentUser.id : 'Unknown';
+            let entry = `[${nowStr}] <span class="log-user">${userStr}</span>: ${logText}`;
+
+            if (type === 'CUST') {
+                if (!custEditLogMap[custNo]) custEditLogMap[custNo] = [];
+                custEditLogMap[custNo].unshift(entry);
+            } else if (type === 'PAY') {
+                if (!payEditLogMap[custNo]) payEditLogMap[custNo] = [];
+                payEditLogMap[custNo].unshift(entry);
+            }
         }
 
         function autoCalcCommission(typeElemId, amountElemId, commissionElemId) {
@@ -1091,6 +1336,7 @@
             if (category === 'historyManager') renderHistoryManagerTable();
             if (category === 'payment') renderPaymentTable();
             if (category === 'billing') renderBillingTable();
+            if (category === 'adminMap') renderAdminUsersTable();
         }
 
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
@@ -1131,10 +1377,13 @@
             let paidData = Array(12).fill(0);
             let settleData = Array(12).fill(0);
 
+            let selectedYM = document.getElementById('dashSelectMonth') ? document.getElementById('dashSelectMonth').value : '2026-10';
+            let yearPrefix = selectedYM.split('-')[0];
+
             customerDataList.forEach(c => {
                 let userPayMap = paymentDataMap[c.no] || {};
                 for (let m = 1; m <= 12; m++) {
-                    let monthKey = `2026-${String(m).padStart(2, '0')}`;
+                    let monthKey = `${yearPrefix}-${String(m).padStart(2, '0')}`;
                     let mData = userPayMap[monthKey] || {};
                     let bAmt = getBillingAmountForMonth(c.no, monthKey);
                     billData[m - 1] += bAmt !== null ? bAmt : 0;
@@ -1390,7 +1639,6 @@
             checkboxes.forEach(cb => cb.checked = master.checked);
         }
 
-        // 고객 엑셀 업로드
         document.getElementById('fileInput').addEventListener('change', function(e) {
             let file = e.target.files[0];
             if (!file) return;
@@ -1459,7 +1707,6 @@
             e.target.value = '';
         });
 
-        // 청구목록 엑셀 업로드
         document.getElementById('billingFileInput').addEventListener('change', function(e) {
             let file = e.target.files[0];
             if (!file) return;
@@ -1520,7 +1767,6 @@
             e.target.value = '';
         });
 
-        // 수금 결제 파일 업로드
         document.getElementById('paymentFileInput').addEventListener('change', function(e) {
             let file = e.target.files[0];
             if (!file) return;
@@ -1571,7 +1817,6 @@
             e.target.value = '';
         });
 
-        // 고객관리 표 렌더링 (등록된 계약이력이 리스트 형태로 전체 표시)
         function renderCustomerTable(dataList) {
             let tbody = "";
             dataList.forEach((item, index) => {
@@ -1580,12 +1825,11 @@
                 let hList = contractHistoryMap[item.no] || [];
                 let historySummary = "";
                 if (hList.length > 0) {
-                    // 전체 계약이력 리스트 표시
                     hList.forEach(h => {
                         historySummary += `<div class="history-tag-item">${h.type} : ${h.date || h.startDate || '-'}</div>`;
                     });
                 } else {
-                    historySummary = `<div style="font-size:11px; color:#94a3b8;">이력 없음</div>`;
+                    historySummary = `<div style="font-size:11px; color:#94a3b8;">-</div>`;
                 }
 
                 let amountDisplay = (item.amount && item.amount > 0) ? `${item.amount.toLocaleString()} 원` : '-';
@@ -1614,7 +1858,7 @@
                     <td>${item.manager || '-'}</td>
                     <td style="min-width:140px;">
                         ${historySummary}
-                        <button class="btn-action" style="margin-top:4px;" onclick="openContractHistoryModal('${item.no}')">등록</button>
+                        <button class="btn-action editable-only" style="margin-top:4px;" onclick="openContractHistoryModal('${item.no}')">등록</button>
                     </td>
                     <td class="text-center"><button class="btn-action" onclick="openDocModal('${item.no}')">서류등록</button></td>
                     <td class="text-center"><button class="btn-action" onclick="openCounselModal('${item.no}')">상담내역</button></td>
@@ -1661,19 +1905,316 @@
                             <td><input type="text" class="table-input-inline" id="hm_memo_${cust.no}_${hIdx}" value="${h.memo || ''}" style="width:100%;" /></td>
                             <td>${fileStr}</td>
                             <td class="text-center">
-                                <button class="btn-action" onclick="updateSingleHistory('${cust.no}', ${hIdx})">수정</button>
-                                <button class="btn-danger" style="font-size:11px; padding:3px 6px;" onclick="deleteSingleHistory('${cust.no}', ${hIdx})">삭제</button>
+                                <button class="btn-action editable-only" onclick="updateSingleHistory('${cust.no}', ${hIdx})">수정</button>
+                                <button class="btn-danger editable-only" style="font-size:11px; padding:3px 6px;" onclick="deleteSingleHistory('${cust.no}', ${hIdx})">삭제</button>
                             </td>
                         </tr>`;
                     }
                 });
             });
 
-            if (count === 0) {
-                tbody = `<tr><td colspan="8" class="text-center" style="color:#94a3b8; padding:30px;">조회된 계약 이력이 없습니다.</td></tr>`;
+            document.getElementById('history-manager-tbody').innerHTML = tbody;
+        }
+
+        function renderBillingTable() {
+            let tbody = "";
+            billingDataList.forEach((b) => {
+                tbody += `<tr>
+                    <td class="text-center"><input type="checkbox" class="bill-check" value="${b.idx}" /></td>
+                    <td class="text-center">${b.idx}</td>
+                    <td style="font-weight:600;">${b.no}</td>
+                    <td style="font-weight:700;">${b.name}</td>
+                    <td class="text-center">${b.month}</td>
+                    <td class="text-right" style="font-weight:700; color:#2563eb;">${b.amount ? b.amount.toLocaleString() + ' 원' : '-'}</td>
+                    <td class="text-center"><span class="badge-status badge-use">${b.status || '청구'}</span></td>
+                    <td>${b.payMethod || '-'}</td>
+                </tr>`;
+            });
+            document.getElementById('billing-table-body').innerHTML = tbody;
+            if (document.getElementById('selectAllBilling')) document.getElementById('selectAllBilling').checked = false;
+        }
+
+        function renderAdminUsersTable() {
+            let tbody = "";
+            userAccountsList.forEach((u, idx) => {
+                let statusBadge = u.isBlocked 
+                    ? `<span class="badge-status badge-stop">차단(Block)</span>`
+                    : `<span class="badge-status badge-use">정상</span>`;
+
+                tbody += `<tr>
+                    <td class="text-center">${idx + 1}</td>
+                    <td style="font-weight:700;">${u.id}</td>
+                    <td>••••••</td>
+                    <td>
+                        <select class="table-input-inline" id="u_role_${idx}" onchange="changeUserRole(${idx})">
+                            <option value="관리자" ${u.role === '관리자' ? 'selected' : ''}>관리자</option>
+                            <option value="편집자" ${u.role === '편집자' ? 'selected' : ''}>편집자</option>
+                            <option value="보기전용" ${u.role === '보기전용' ? 'selected' : ''}>보기전용</option>
+                        </select>
+                    </td>
+                    <td>${u.phone || '-'}</td>
+                    <td>${u.email || '-'}</td>
+                    <td class="text-center">${statusBadge}</td>
+                    <td class="text-center">
+                        <button class="btn-action" onclick="toggleUserBlock(${idx})">${u.isBlocked ? '차단해제' : '계정차단'}</button>
+                        <button class="btn-danger" style="font-size:11px; padding:3px 6px;" onclick="deleteUserAccount(${idx})">삭제</button>
+                    </td>
+                </tr>`;
+            });
+            document.getElementById('admin-users-tbody').innerHTML = tbody;
+        }
+
+        function openAddUserModal() {
+            document.getElementById('userModalTitle').innerText = "신규 사용자 계정 생성";
+            document.getElementById('u_edit_mode').value = "ADD";
+            document.getElementById('u_id').value = "";
+            document.getElementById('u_pw').value = "";
+            document.getElementById('u_phone').value = "";
+            document.getElementById('u_email').value = "";
+            openModal('userAdminModal');
+        }
+
+        function saveUserAccount() {
+            let id = document.getElementById('u_id').value.trim();
+            let pw = document.getElementById('u_pw').value.trim();
+            let role = document.getElementById('u_role').value;
+            let phone = document.getElementById('u_phone').value.trim();
+            let email = document.getElementById('u_email').value.trim();
+
+            if (!id || !pw) { alert("아이디와 비밀번호는 필수입니다."); return; }
+
+            let existing = userAccountsList.find(u => u.id === id);
+            if (existing) { alert("이미 존재하는 아이디입니다."); return; }
+
+            userAccountsList.push({
+                id: id,
+                pw: pw,
+                role: role,
+                phone: phone,
+                email: email,
+                isBlocked: false
+            });
+
+            renderAdminUsersTable();
+            closeModal('userAdminModal');
+            syncToFirebase();
+            alert("신규 사용자 계정이 등록되었습니다.");
+        }
+
+        function changeUserRole(idx) {
+            let newRole = document.getElementById(`u_role_${idx}`).value;
+            userAccountsList[idx].role = newRole;
+            syncToFirebase();
+            alert(`${userAccountsList[idx].id} 계정의 권한이 [${newRole}]로 변경되었습니다.`);
+        }
+
+        function toggleUserBlock(idx) {
+            userAccountsList[idx].isBlocked = !userAccountsList[idx].isBlocked;
+            renderAdminUsersTable();
+            syncToFirebase();
+            alert(`${userAccountsList[idx].id} 계정이 ${userAccountsList[idx].isBlocked ? '차단' : '차단 해제'}되었습니다.`);
+        }
+
+        function deleteUserAccount(idx) {
+            if (!confirm(`${userAccountsList[idx].id} 계정을 삭제하시겠습니까?`)) return;
+            userAccountsList.splice(idx, 1);
+            renderAdminUsersTable();
+            syncToFirebase();
+            alert("계정이 삭제되었습니다.");
+        }
+
+        function openDetailModal(idx) {
+            let item = customerDataList.find(x => x.idx === idx);
+            if (!item) return;
+
+            document.getElementById('edit_idx').value = item.idx;
+            document.getElementById('edit_no').value = item.no;
+            document.getElementById('edit_name').value = item.name;
+            document.getElementById('edit_phone').value = item.phone;
+            document.getElementById('edit_status').value = item.status;
+            document.getElementById('edit_start').value = item.startDate;
+            document.getElementById('edit_amount').value = item.amount || '';
+            document.getElementById('edit_commission').value = item.commission || '';
+            document.getElementById('edit_type').value = item.type;
+            document.getElementById('edit_agency').value = item.agency || '-';
+            document.getElementById('edit_store').value = item.store || '-';
+            document.getElementById('edit_manager').value = item.manager || '-';
+
+            renderCustEditLog(item.no);
+            openModal('detailModal');
+        }
+
+        function renderCustEditLog(no) {
+            let logs = custEditLogMap[no] || [];
+            let container = document.getElementById('custEditLogContainer');
+            if (logs.length === 0) {
+                container.innerHTML = `<div style="color:#94a3b8; text-align:center; padding:10px;">수정이력이 없습니다.</div>`;
+                return;
+            }
+            let html = "";
+            logs.forEach(l => {
+                html += `<div class="log-item">${l}</div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function updateCustomerDetail() {
+            let idx = parseInt(document.getElementById('edit_idx').value);
+            let item = customerDataList.find(x => x.idx === idx);
+            if (!item) return;
+
+            let oldAmt = item.amount || 0;
+            let oldComm = item.commission || 0;
+            let newAmt = parseInt(document.getElementById('edit_amount').value) || 0;
+            let newComm = parseInt(document.getElementById('edit_commission').value) || 0;
+            let todayStr = new Date().toISOString().split('T')[0];
+
+            item.name = document.getElementById('edit_name').value.trim();
+            item.phone = document.getElementById('edit_phone').value.trim();
+            item.status = document.getElementById('edit_status').value;
+            item.startDate = document.getElementById('edit_start').value.trim();
+            item.amount = newAmt;
+            item.commission = newComm;
+            item.type = document.getElementById('edit_type').value.trim();
+            item.agency = document.getElementById('edit_agency').value.trim();
+            item.store = document.getElementById('edit_store').value.trim();
+            item.manager = document.getElementById('edit_manager').value.trim();
+
+            if (oldAmt !== newAmt) {
+                if (!contractHistoryMap[item.no]) contractHistoryMap[item.no] = [];
+                contractHistoryMap[item.no].unshift({
+                    type: '상품금액변경',
+                    date: todayStr,
+                    memo: `상품금액 변경: ${oldAmt.toLocaleString()}원 -> ${newAmt.toLocaleString()}원`,
+                    fileName: ''
+                });
+                logEditRecord('CUST', item.no, `상품금액 변경 (${oldAmt.toLocaleString()}원 -> ${newAmt.toLocaleString()}원)`);
             }
 
-            document.getElementById('history-manager-tbody').innerHTML = tbody;
+            if (oldComm !== newComm) {
+                if (!contractHistoryMap[item.no]) contractHistoryMap[item.no] = [];
+                contractHistoryMap[item.no].unshift({
+                    type: '영업수수료변경',
+                    date: todayStr,
+                    memo: `영업수수료 변경: ${oldComm.toLocaleString()}원 -> ${newComm.toLocaleString()}원`,
+                    fileName: ''
+                });
+                logEditRecord('CUST', item.no, `영업수수료 변경 (${oldComm.toLocaleString()}원 -> ${newComm.toLocaleString()}원)`);
+            }
+
+            logEditRecord('CUST', item.no, `고객 세부정보 업데이트 저장`);
+
+            updateSelectOptions();
+            updateTabBadges();
+            filterCustomerTable();
+            renderHistoryManagerTable();
+            updateKPIs();
+            renderDashboardCharts();
+            closeModal('detailModal');
+            syncToFirebase();
+            alert("고객 세부 내역이 수정되었으며 변경사항이 계약이력 및 로그에 기록되었습니다.");
+        }
+
+        function openPaymentDetailModal(no) {
+            let item = customerDataList.find(x => x.no === no);
+            if (!item) return;
+
+            document.getElementById('p_edit_no').value = item.no;
+            document.getElementById('m_card_no').innerText = item.no;
+            document.getElementById('m_card_name').innerText = item.name;
+            
+            let statusBadge = item.status === '사용' 
+                ? '<span class="badge-status badge-use">사용</span>' 
+                : '<span class="badge-status badge-stop">'+item.status+'</span>';
+            document.getElementById('m_card_status').innerHTML = statusBadge;
+
+            document.getElementById('p_modal_year_text').innerText = `${currentModalYear}년`;
+
+            renderPaymentModalContent(no);
+            renderPayEditLog(no);
+            openModal('paymentDetailModal');
+        }
+
+        function renderPayEditLog(no) {
+            let logs = payEditLogMap[no] || [];
+            let container = document.getElementById('payEditLogContainer');
+            if (logs.length === 0) {
+                container.innerHTML = `<div style="color:#94a3b8; text-align:center; padding:10px;">수정이력이 없습니다.</div>`;
+                return;
+            }
+            let html = "";
+            logs.forEach(l => {
+                html += `<div class="log-item">${l}</div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function addSinglePaymentRecord() {
+            let no = document.getElementById('p_edit_no').value;
+            let type = document.getElementById('p_new_type').value; 
+            let month = document.getElementById('p_new_month').value;
+            let dateVal = document.getElementById('p_new_date').value;
+            let amtVal = parseInt(document.getElementById('p_new_amt').value) || 0;
+
+            if (!no) return;
+            if (!paymentDataMap[no]) paymentDataMap[no] = {};
+
+            let monthStr = `${currentModalYear}-${month}`;
+            let bAmt = getBillingAmountForMonth(no, monthStr);
+            let pAmt = bAmt !== null ? bAmt : 0;
+
+            if (!paymentDataMap[no][monthStr]) {
+                paymentDataMap[no][monthStr] = {
+                    amount: pAmt,
+                    commission: 0,
+                    paid: 0,
+                    paidDate: '',
+                    settle: 0,
+                    settleDate: '',
+                    unpaid: pAmt
+                };
+            }
+
+            let mData = paymentDataMap[no][monthStr];
+
+            if (type === 'PAID') {
+                mData.paid = amtVal;
+                mData.paidDate = dateVal;
+                mData.unpaid = Math.max(0, pAmt - amtVal);
+                logEditRecord('PAY', no, `${monthStr}월 수납등록 (${amtVal.toLocaleString()}원, 정산일:${dateVal})`);
+            } else if (type === 'SETTLE') {
+                mData.settle = amtVal;
+                mData.settleDate = dateVal;
+                logEditRecord('PAY', no, `${monthStr}월 정산등록 (${amtVal.toLocaleString()}원, 입금일:${dateVal})`);
+            }
+
+            document.getElementById('p_new_date').value = '';
+            document.getElementById('p_new_amt').value = '';
+
+            renderPaymentModalContent(no);
+            renderPayEditLog(no);
+            renderPaymentTable();
+            renderDashboardCharts();
+            syncToFirebase();
+            alert(`${month}월 ${type === 'PAID' ? '수납' : '정산'} 내역이 등록되었습니다.`);
+        }
+
+        function savePaymentModalData() {
+            let no = document.getElementById('p_edit_no').value;
+            if (!no) return;
+
+            if (!paymentDataMap[no]) paymentDataMap[no] = {};
+
+            let memoDate = document.getElementById('p_memo_date').value;
+            let memoText = document.getElementById('p_memo_text').value.trim();
+            paymentDataMap[no]['MEMO'] = { date: memoDate, text: memoText };
+
+            logEditRecord('PAY', no, `비고/메모 관리 수정 저장 (${memoText})`);
+
+            renderPaymentTable();
+            closeModal('paymentDetailModal');
+            syncToFirebase();
+            alert("수금 및 정산 메모 정보가 저장되었습니다.");
         }
 
         function updateSingleHistory(custNo, hIdx) {
@@ -1687,6 +2228,8 @@
             contractHistoryMap[custNo][hIdx].date = newDate;
             contractHistoryMap[custNo][hIdx].memo = newMemo;
 
+            logEditRecord('CUST', custNo, `계약이력 수정 (${newType}, ${newDate})`);
+
             renderHistoryManagerTable();
             filterCustomerTable();
             syncToFirebase();
@@ -1698,10 +2241,53 @@
             if (contractHistoryMap[custNo]) {
                 contractHistoryMap[custNo].splice(hIdx, 1);
             }
+            logEditRecord('CUST', custNo, `계약이력 삭제`);
             renderHistoryManagerTable();
             filterCustomerTable();
             syncToFirebase();
             alert("계약 이력이 삭제되었습니다.");
+        }
+
+        function saveContractHistory() {
+            let no = document.getElementById('h_cust_no').value;
+            let type = document.getElementById('h_type').value;
+            let date = document.getElementById('h_date').value;
+            let memo = document.getElementById('h_memo').value.trim();
+            let fileInput = document.getElementById('h_file');
+            let fileName = fileInput.files.length > 0 ? fileInput.files[0].name : '';
+
+            if (!contractHistoryMap[no]) contractHistoryMap[no] = [];
+
+            contractHistoryMap[no].unshift({
+                type: type,
+                date: date,
+                memo: memo,
+                fileName: fileName
+            });
+
+            logEditRecord('CUST', no, `신규 계약이력 추가 (${type}, ${date})`);
+
+            document.getElementById('h_date').value = '';
+            document.getElementById('h_memo').value = '';
+            fileInput.value = '';
+
+            renderHistoryList(no);
+            filterCustomerTable();
+            renderHistoryManagerTable();
+            syncToFirebase();
+            alert("새 계약 이력이 추가되었습니다.");
+        }
+
+        function deleteContractHistory(no, idx) {
+            if (!confirm("이 계약 이력을 삭제하시겠습니까?")) return;
+            if (contractHistoryMap[no]) {
+                contractHistoryMap[no].splice(idx, 1);
+            }
+            logEditRecord('CUST', no, `계약이력 항목 삭제`);
+            renderHistoryList(no);
+            filterCustomerTable();
+            renderHistoryManagerTable();
+            syncToFirebase();
         }
 
         function openDocModal(no) {
@@ -1731,7 +2317,7 @@
                     <div>
                         <strong>[${d.name}]</strong> ${fileStr} <span class="val-date">(${d.date})</span>
                     </div>
-                    <button class="btn-danger" style="font-size:11px; padding:2px 6px;" onclick="deleteDocRecord('${no}', ${idx})">삭제</button>
+                    <button class="btn-danger editable-only" style="font-size:11px; padding:2px 6px;" onclick="deleteDocRecord('${no}', ${idx})">삭제</button>
                 </div>`;
             });
             container.innerHTML = html;
@@ -1754,6 +2340,8 @@
                 date: todayStr
             });
 
+            logEditRecord('CUST', no, `서류 등록 (${docName})`);
+
             document.getElementById('doc_name').value = '';
             fileInput.value = '';
 
@@ -1765,6 +2353,7 @@
         function deleteDocRecord(no, idx) {
             if (!confirm("이 서류 항목을 삭제하시겠습니까?")) return;
             if (docDataMap[no]) docDataMap[no].splice(idx, 1);
+            logEditRecord('CUST', no, `서류 삭제`);
             renderDocList(no);
             syncToFirebase();
         }
@@ -1780,7 +2369,6 @@
             openModal('counselModal');
         }
 
-        // 상담 내역 렌더링 (수정 및 삭제 가능)
         function renderCounselList(no) {
             let list = counselDataMap[no] || [];
             let container = document.getElementById('counselListContainer');
@@ -1804,8 +2392,8 @@
                             <input type="date" class="table-input-inline" id="cs_date_${no}_${idx}" value="${c.date || ''}" />
                         </div>
                         <div>
-                            <button class="btn-action" style="font-size:11px; padding:2px 6px;" onclick="updateCounselRecord('${no}', ${idx})">수정</button>
-                            <button class="btn-danger" style="font-size:11px; padding:2px 6px;" onclick="deleteCounselRecord('${no}', ${idx})">삭제</button>
+                            <button class="btn-action editable-only" style="font-size:11px; padding:2px 6px;" onclick="updateCounselRecord('${no}', ${idx})">수정</button>
+                            <button class="btn-danger editable-only" style="font-size:11px; padding:2px 6px;" onclick="deleteCounselRecord('${no}', ${idx})">삭제</button>
                         </div>
                     </div>
                     <div>
@@ -1832,6 +2420,8 @@
                 text: text
             });
 
+            logEditRecord('CUST', no, `상담내역 등록 (${type})`);
+
             document.getElementById('counsel_text').value = '';
 
             renderCounselList(no);
@@ -1850,6 +2440,8 @@
             counselDataMap[no][idx].date = newDate;
             counselDataMap[no][idx].text = newText;
 
+            logEditRecord('CUST', no, `상담내역 수정 (${newType})`);
+
             renderCounselList(no);
             syncToFirebase();
             alert("상담 내역이 수정되었습니다.");
@@ -1858,28 +2450,25 @@
         function deleteCounselRecord(no, idx) {
             if (!confirm("이 상담 기록을 삭제하시겠습니까?")) return;
             if (counselDataMap[no]) counselDataMap[no].splice(idx, 1);
+            logEditRecord('CUST', no, `상담내역 삭제`);
             renderCounselList(no);
             syncToFirebase();
         }
 
         function renderBillingTable() {
             let tbody = "";
-            if (billingDataList.length === 0) {
-                tbody = `<tr><td colspan="8" class="text-center" style="color:#94a3b8; padding:30px;">[대량업로드] 버튼을 통해 청구목록(청구별) 엑셀을 등록해주세요.</td></tr>`;
-            } else {
-                billingDataList.forEach((b) => {
-                    tbody += `<tr>
-                        <td class="text-center"><input type="checkbox" class="bill-check" value="${b.idx}" /></td>
-                        <td class="text-center">${b.idx}</td>
-                        <td style="font-weight:600;">${b.no}</td>
-                        <td style="font-weight:700;">${b.name}</td>
-                        <td class="text-center">${b.month}</td>
-                        <td class="text-right" style="font-weight:700; color:#2563eb;">${b.amount ? b.amount.toLocaleString() + ' 원' : '-'}</td>
-                        <td class="text-center"><span class="badge-status badge-use">${b.status || '청구'}</span></td>
-                        <td>${b.payMethod || '-'}</td>
-                    </tr>`;
-                });
-            }
+            billingDataList.forEach((b) => {
+                tbody += `<tr>
+                    <td class="text-center"><input type="checkbox" class="bill-check" value="${b.idx}" /></td>
+                    <td class="text-center">${b.idx}</td>
+                    <td style="font-weight:600;">${b.no}</td>
+                    <td style="font-weight:700;">${b.name}</td>
+                    <td class="text-center">${b.month}</td>
+                    <td class="text-right" style="font-weight:700; color:#2563eb;">${b.amount ? b.amount.toLocaleString() + ' 원' : '-'}</td>
+                    <td class="text-center"><span class="badge-status badge-use">${b.status || '청구'}</span></td>
+                    <td>${b.payMethod || '-'}</td>
+                </tr>`;
+            });
             document.getElementById('billing-table-body').innerHTML = tbody;
             if (document.getElementById('selectAllBilling')) document.getElementById('selectAllBilling').checked = false;
         }
@@ -1942,7 +2531,6 @@
             XLSX.writeFile(workbook, "청구관리_내역.xlsx");
         }
 
-        // 미정산금액 공식: 영업수수료 > 0 일 때 영업수수료 - 정산금액
         function getYearlySummary(no, year) {
             let userPayMap = paymentDataMap[no] || {};
             let sumPaid = 0, sumSettle = 0, sumUnpaid = 0, sumUnsettled = 0;
@@ -2014,25 +2602,6 @@
             if (no) renderPaymentModalContent(no);
         }
 
-        function openPaymentDetailModal(no) {
-            let item = customerDataList.find(x => x.no === no);
-            if (!item) return;
-
-            document.getElementById('p_edit_no').value = item.no;
-            document.getElementById('m_card_no').innerText = item.no;
-            document.getElementById('m_card_name').innerText = item.name;
-            
-            let statusBadge = item.status === '사용' 
-                ? '<span class="badge-status badge-use">사용</span>' 
-                : '<span class="badge-status badge-stop">'+item.status+'</span>';
-            document.getElementById('m_card_status').innerHTML = statusBadge;
-
-            document.getElementById('p_modal_year_text').innerText = `${currentModalYear}년`;
-
-            renderPaymentModalContent(no);
-            openModal('paymentDetailModal');
-        }
-
         function renderPaymentModalContent(no) {
             let item = customerDataList.find(x => x.no === no);
             let userPayMap = paymentDataMap[no] || {};
@@ -2074,7 +2643,7 @@
                     ? `<div class="val-item">
                          <span class="val-date">${paidDate}</span>
                          <span>${paidAmt.toLocaleString()}</span>
-                         <button class="btn-mini-x" onclick="clearSingleValue('${no}', '${monthStr}', 'paid')" title="수납 데이터 삭제">✕</button>
+                         <button class="btn-mini-x editable-only" onclick="clearSingleValue('${no}', '${monthStr}', 'paid')" title="수납 데이터 삭제">✕</button>
                        </div>`
                     : `<span style="color:#cbd5e1;">-</span>`;
 
@@ -2082,7 +2651,7 @@
                     ? `<div class="val-item">
                          <span class="val-date">${settleDate}</span>
                          <span>${settleAmt.toLocaleString()}</span>
-                         <button class="btn-mini-x" onclick="clearSingleValue('${no}', '${monthStr}', 'settle')" title="정산 데이터 삭제">✕</button>
+                         <button class="btn-mini-x editable-only" onclick="clearSingleValue('${no}', '${monthStr}', 'settle')" title="정산 데이터 삭제">✕</button>
                        </div>`
                     : `<span style="color:#cbd5e1;">-</span>`;
 
@@ -2109,159 +2678,6 @@
             let memoInfo = userPayMap['MEMO'] || {};
             document.getElementById('p_memo_date').value = memoInfo.date || '';
             document.getElementById('p_memo_text').value = memoInfo.text || '';
-        }
-
-        function clearSingleValue(no, monthStr, type) {
-            if (paymentDataMap[no] && paymentDataMap[no][monthStr]) {
-                if (type === 'paid') {
-                    paymentDataMap[no][monthStr].paid = 0;
-                    paymentDataMap[no][monthStr].paidDate = '';
-                } else if (type === 'settle') {
-                    paymentDataMap[no][monthStr].settle = 0;
-                    paymentDataMap[no][monthStr].settleDate = '';
-                }
-            }
-            renderPaymentModalContent(no);
-            renderPaymentTable();
-            renderDashboardCharts();
-            syncToFirebase();
-        }
-
-        function addSinglePaymentRecord() {
-            let no = document.getElementById('p_edit_no').value;
-            let type = document.getElementById('p_new_type').value; 
-            let month = document.getElementById('p_new_month').value;
-            let dateVal = document.getElementById('p_new_date').value;
-            let amtVal = parseInt(document.getElementById('p_new_amt').value) || 0;
-
-            if (!no) return;
-            if (!paymentDataMap[no]) paymentDataMap[no] = {};
-
-            let monthStr = `${currentModalYear}-${month}`;
-            let bAmt = getBillingAmountForMonth(no, monthStr);
-            let pAmt = bAmt !== null ? bAmt : 0;
-
-            if (!paymentDataMap[no][monthStr]) {
-                paymentDataMap[no][monthStr] = {
-                    amount: pAmt,
-                    commission: 0,
-                    paid: 0,
-                    paidDate: '',
-                    settle: 0,
-                    settleDate: '',
-                    unpaid: pAmt
-                };
-            }
-
-            let mData = paymentDataMap[no][monthStr];
-
-            if (type === 'PAID') {
-                mData.paid = amtVal;
-                mData.paidDate = dateVal;
-                mData.unpaid = Math.max(0, pAmt - amtVal);
-            } else if (type === 'SETTLE') {
-                mData.settle = amtVal;
-                mData.settleDate = dateVal;
-            }
-
-            document.getElementById('p_new_date').value = '';
-            document.getElementById('p_new_amt').value = '';
-
-            renderPaymentModalContent(no);
-            renderPaymentTable();
-            renderDashboardCharts();
-            syncToFirebase();
-            alert(`${month}월 ${type === 'PAID' ? '수납' : '정산'} 내역이 등록되었습니다.`);
-        }
-
-        function savePaymentModalData() {
-            let no = document.getElementById('p_edit_no').value;
-            if (!no) return;
-
-            if (!paymentDataMap[no]) paymentDataMap[no] = {};
-
-            let memoDate = document.getElementById('p_memo_date').value;
-            let memoText = document.getElementById('p_memo_text').value.trim();
-            paymentDataMap[no]['MEMO'] = { date: memoDate, text: memoText };
-
-            renderPaymentTable();
-            closeModal('paymentDetailModal');
-            syncToFirebase();
-            alert("수금 및 정산 메모 정보가 저장되었습니다.");
-        }
-
-        function openContractHistoryModal(no) {
-            let item = customerDataList.find(x => x.no === no);
-            if (!item) return;
-
-            document.getElementById('h_cust_no').value = item.no;
-            document.getElementById('h_cust_info').innerText = `[${item.no}] ${item.name} 가맹점 계약 이력`;
-
-            renderHistoryList(item.no);
-            openModal('contractHistoryModal');
-        }
-
-        function renderHistoryList(no) {
-            let list = contractHistoryMap[no] || [];
-            let container = document.getElementById('historyListContainer');
-
-            if (list.length === 0) {
-                container.innerHTML = `<div style="text-align:center; color:#94a3b8; padding:20px;">등록된 계약이력이 없습니다.</div>`;
-                return;
-            }
-
-            let html = "";
-            list.forEach((h, idx) => {
-                let fileStr = h.fileName ? `<span style="color:#2563eb; font-size:11px;">(📄 ${h.fileName})</span>` : '';
-                let dateDisplay = h.date || h.startDate || '-';
-                html += `<div class="history-item">
-                    <div>
-                        <strong>[${h.type}]</strong> ${dateDisplay} ${fileStr}
-                        <div style="font-size:11px; color:#64748b; margin-top:2px;">${h.memo || ''}</div>
-                    </div>
-                    <button class="btn-danger" style="font-size:11px; padding:2px 6px;" onclick="deleteContractHistory('${no}', ${idx})">삭제</button>
-                </div>`;
-            });
-            container.innerHTML = html;
-        }
-
-        function saveContractHistory() {
-            let no = document.getElementById('h_cust_no').value;
-            let type = document.getElementById('h_type').value;
-            let date = document.getElementById('h_date').value;
-            let memo = document.getElementById('h_memo').value.trim();
-            let fileInput = document.getElementById('h_file');
-            let fileName = fileInput.files.length > 0 ? fileInput.files[0].name : '';
-
-            if (!contractHistoryMap[no]) contractHistoryMap[no] = [];
-
-            contractHistoryMap[no].unshift({
-                type: type,
-                date: date,
-                memo: memo,
-                fileName: fileName
-            });
-
-            document.getElementById('h_date').value = '';
-            document.getElementById('h_memo').value = '';
-            fileInput.value = '';
-
-            renderHistoryList(no);
-            filterCustomerTable();
-            renderHistoryManagerTable();
-            syncToFirebase();
-            alert("새 계약 이력이 추가되었습니다.");
-        }
-
-        function deleteContractHistory(no, idx) {
-            if (!confirm("이 계약 이력을 삭제하시겠습니까?")) return;
-            if (contractHistoryMap[no]) {
-                contractHistoryMap[no].splice(idx, 1);
-            }
-            renderHistoryList(no);
-            filterCustomerTable();
-            renderHistoryManagerTable();
-            syncToFirebase();
         }
 
         function deleteSelectedCustomers() {
@@ -2355,79 +2771,6 @@
             XLSX.writeFile(workbook, "수금관리_내역.xlsx");
         }
 
-        function openDetailModal(idx) {
-            let item = customerDataList.find(x => x.idx === idx);
-            if (!item) return;
-
-            document.getElementById('edit_idx').value = item.idx;
-            document.getElementById('edit_no').value = item.no;
-            document.getElementById('edit_name').value = item.name;
-            document.getElementById('edit_phone').value = item.phone;
-            document.getElementById('edit_status').value = item.status;
-            document.getElementById('edit_start').value = item.startDate;
-            document.getElementById('edit_amount').value = item.amount || '';
-            document.getElementById('edit_commission').value = item.commission || '';
-            document.getElementById('edit_type').value = item.type;
-            document.getElementById('edit_agency').value = item.agency || '-';
-            document.getElementById('edit_store').value = item.store || '-';
-            document.getElementById('edit_manager').value = item.manager || '-';
-
-            openModal('detailModal');
-        }
-
-        function updateCustomerDetail() {
-            let idx = parseInt(document.getElementById('edit_idx').value);
-            let item = customerDataList.find(x => x.idx === idx);
-            if (!item) return;
-
-            let oldAmt = item.amount || 0;
-            let oldComm = item.commission || 0;
-            let newAmt = parseInt(document.getElementById('edit_amount').value) || 0;
-            let newComm = parseInt(document.getElementById('edit_commission').value) || 0;
-            let todayStr = new Date().toISOString().split('T')[0];
-
-            item.name = document.getElementById('edit_name').value.trim();
-            item.phone = document.getElementById('edit_phone').value.trim();
-            item.status = document.getElementById('edit_status').value;
-            item.startDate = document.getElementById('edit_start').value.trim();
-            item.amount = newAmt;
-            item.commission = newComm;
-            item.type = document.getElementById('edit_type').value.trim();
-            item.agency = document.getElementById('edit_agency').value.trim();
-            item.store = document.getElementById('edit_store').value.trim();
-            item.manager = document.getElementById('edit_manager').value.trim();
-
-            if (oldAmt !== newAmt) {
-                if (!contractHistoryMap[item.no]) contractHistoryMap[item.no] = [];
-                contractHistoryMap[item.no].unshift({
-                    type: '상품금액변경',
-                    date: todayStr,
-                    memo: `상품금액 변경: ${oldAmt.toLocaleString()}원 -> ${newAmt.toLocaleString()}원`,
-                    fileName: ''
-                });
-            }
-
-            if (oldComm !== newComm) {
-                if (!contractHistoryMap[item.no]) contractHistoryMap[item.no] = [];
-                contractHistoryMap[item.no].unshift({
-                    type: '영업수수료변경',
-                    date: todayStr,
-                    memo: `영업수수료 변경: ${oldComm.toLocaleString()}원 -> ${newComm.toLocaleString()}원`,
-                    fileName: ''
-                });
-            }
-
-            updateSelectOptions();
-            updateTabBadges();
-            filterCustomerTable();
-            renderHistoryManagerTable();
-            updateKPIs();
-            renderDashboardCharts();
-            closeModal('detailModal');
-            syncToFirebase();
-            alert("고객 세부 내역이 수정되었으며 변경사항이 계약이력에 자동 기록되었습니다.");
-        }
-
         function deleteCustomer() {
             let idx = parseInt(document.getElementById('edit_idx').value);
             if (!confirm("정말로 이 고객 정보를 삭제하시겠습니까?")) return;
@@ -2476,6 +2819,8 @@
                 store: document.getElementById('m_store').value.trim() || '-',
                 manager: document.getElementById('m_manager').value.trim() || '-'
             });
+
+            logEditRecord('CUST', no, `신규 고객 수동 등록 (${name})`);
 
             updateSelectOptions();
             updateTabBadges();
