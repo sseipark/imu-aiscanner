@@ -846,7 +846,7 @@
                         <div class="card-actions">
                             <button class="btn btn-primary editable-only" style="font-size: 12px; padding: 6px 12px;" onclick="openModal('customerModal')">등록</button>
                             <button class="btn btn-danger editable-only" style="font-size: 12px; padding: 6px 12px;" onclick="deleteSelectedCustomers()">삭제</button>
-                            <button class="btn btn-excel editable-only" style="font-size: 12px; padding: 6px 12px;" onclick="document.getElementById('fileInput').click()">대량업로드</button>
+                            <button class="btn btn-excel editable-only" style="font-size: 12px; padding: 6px 12px;" onclick="triggerFileInput('fileInput')">대량업로드</button>
                             <button class="btn btn-outline" style="font-size: 12px; padding: 6px 12px;" onclick="downloadSelectedExcel()">엑셀 다운로드</button>
                         </div>
                     </h3>
@@ -989,7 +989,7 @@
                     <h3>
                         <span>월별 수금 및 입금 관리 내역</span>
                         <div class="card-actions">
-                            <button class="btn btn-excel editable-only" style="font-size: 12px; padding: 6px 12px;" onclick="document.getElementById('paymentFileInput').click()">수금업로드</button>
+                            <button class="btn btn-excel editable-only" style="font-size: 12px; padding: 6px 12px;" onclick="triggerFileInput('paymentFileInput')">수금업로드</button>
                             <button class="btn btn-danger editable-only" style="font-size: 12px; padding: 6px 12px;" onclick="openDeleteBatchModal()">수금삭제</button>
                             <button class="btn btn-outline" style="font-size: 12px; padding: 6px 12px;" onclick="downloadPaymentExcel()">엑셀 다운로드</button>
                         </div>
@@ -1033,7 +1033,7 @@
                             </select>
                             <button class="btn btn-primary editable-only" style="font-size: 12px; padding: 6px 12px;" onclick="openModal('billingModal')">등록</button>
                             <button class="btn btn-danger editable-only" style="font-size: 12px; padding: 6px 12px;" onclick="deleteSelectedBillings()">삭제</button>
-                            <button class="btn btn-excel editable-only" style="font-size: 12px; padding: 6px 12px;" onclick="document.getElementById('billingFileInput').click()">대량업로드</button>
+                            <button class="btn btn-excel editable-only" style="font-size: 12px; padding: 6px 12px;" onclick="triggerFileInput('billingFileInput')">대량업로드</button>
                             <button class="btn btn-outline" style="font-size: 12px; padding: 6px 12px;" onclick="downloadBillingExcel()">엑셀 다운로드</button>
                         </div>
                     </h3>
@@ -1238,6 +1238,15 @@
         let chartMonthlyInstance = null;
         let chartAgencyInstance = null;
 
+        // 파일 업로드 창 트리거 보완 함수
+        function triggerFileInput(id) {
+            let el = document.getElementById(id);
+            if (el) {
+                el.value = '';
+                el.click();
+            }
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             let savedCust = localStorage.getItem('cms_cust_list');
             let savedPay = localStorage.getItem('cms_pay_map');
@@ -1248,6 +1257,7 @@
             let savedPayLog = localStorage.getItem('cms_pay_log');
             let savedBatch = localStorage.getItem('cms_upload_batch');
             let savedTrash = localStorage.getItem('cms_trash_list');
+            let savedCurrentUser = localStorage.getItem('cms_current_user');
 
             if (savedCust) customerDataList = JSON.parse(savedCust);
             if (savedPay) paymentDataMap = JSON.parse(savedPay);
@@ -1258,6 +1268,9 @@
             if (savedPayLog) payEditLogMap = JSON.parse(savedPayLog);
             if (savedBatch) uploadBatchList = JSON.parse(savedBatch);
             if (savedTrash) deletedCustomerTrashList = JSON.parse(savedTrash);
+            
+            // 새로고침 시 로그인 세션 자동 복원
+            if (savedCurrentUser) currentUser = JSON.parse(savedCurrentUser);
 
             updateAuthUI();
             updateSelectOptions();
@@ -1339,6 +1352,13 @@
             localStorage.setItem('cms_pay_log', JSON.stringify(payEditLogMap));
             localStorage.setItem('cms_upload_batch', JSON.stringify(uploadBatchList));
             localStorage.setItem('cms_trash_list', JSON.stringify(deletedCustomerTrashList));
+            
+            // 로그인 세션 상태 저장
+            if (currentUser) {
+                localStorage.setItem('cms_current_user', JSON.stringify(currentUser));
+            } else {
+                localStorage.removeItem('cms_current_user');
+            }
         }
 
         function toggleSelectAllCustomer(master) {
@@ -1404,6 +1424,7 @@
             }
 
             currentUser = { id: target.id, name: target.name, role: target.role };
+            saveLocalStorage();
             updateAuthUI();
             alert(`${target.name || target.id}님 로그인 되었습니다.`);
         }
@@ -1411,6 +1432,7 @@
         function handleAuthBtnClick() {
             if (currentUser) {
                 currentUser = null;
+                saveLocalStorage();
                 updateAuthUI();
                 alert("로그아웃 되었습니다. 로그인 전용 화면으로 이동합니다.");
             } else {
@@ -1434,6 +1456,7 @@
             }
 
             currentUser = { id: target.id, name: target.name, role: target.role };
+            saveLocalStorage();
             updateAuthUI();
             closeModal('loginModal');
             document.getElementById('login_id').value = '';
@@ -1893,6 +1916,196 @@
             managerSelect.value = managers.includes(currentManager) ? currentManager : 'ALL';
         }
 
+        // 고객 대량업로드 파싱 로직 정상화
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            let file = e.target.files[0];
+            if (!file) return;
+
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    let data = new Uint8Array(e.target.result);
+                    let workbook = XLSX.read(data, {type: 'array'});
+                    let sheetName = workbook.SheetNames[0];
+                    let rawData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {defval: ""});
+
+                    if (rawData.length > 0) {
+                        customerDataList = rawData.map((row, idx) => {
+                            let custNo = String(row['회원번호'] || '');
+                            let startD = String(row['청구시작일'] || '').split('T')[0];
+                            let typeStr = String(row['회원구분'] || '미지정');
+                            let pAmt = parseInt(row['상품금액합'] || row['상품금액']) || 0;
+                            let cAmt = parseInt(row['영업수수료']) || 0;
+
+                            if (typeStr === 'AI스캐너') {
+                                let commMap = { 66000:0, 104500:0, 132000:27500, 165000:44000, 264000:55000, 286000:77000 };
+                                if (commMap[pAmt] !== undefined) cAmt = commMap[pAmt];
+                            }
+
+                            if (custNo && startD) {
+                                if (!contractHistoryMap[custNo]) contractHistoryMap[custNo] = [];
+                                contractHistoryMap[custNo].unshift({
+                                    type: '사용',
+                                    date: startD,
+                                    memo: '청구시작일 자동연동',
+                                    fileName: ''
+                                });
+                            }
+
+                            return {
+                                idx: idx + 1,
+                                no: custNo,
+                                name: String(row['회원명'] || ''),
+                                phone: String(row['납부자 휴대전화'] || ''),
+                                status: String(row['계약상태'] || '사용'),
+                                startDate: startD,
+                                amount: pAmt,
+                                commission: cAmt,
+                                type: typeStr,
+                                agency: String(row['대리점'] || '-'),
+                                store: String(row['가맹점'] || '-'),
+                                manager: String(row['영업대표'] || '-')
+                            };
+                        });
+
+                        updateSelectOptions();
+                        updateTabBadges();
+                        filterCustomerTable();
+                        renderHistoryManagerTable();
+                        updateKPIs();
+                        renderDashboardCharts();
+                        syncToFirebase();
+                        alert(`총 ${customerDataList.length}건의 고객 정보가 성공적으로 대량 업로드 되었습니다.`);
+                    }
+                } catch (err) {
+                    alert("고객 대량 업로드 실패: " + err);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            e.target.value = '';
+        });
+
+        document.getElementById('billingFileInput').addEventListener('change', function(e) {
+            let file = e.target.files[0];
+            if (!file) return;
+
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    let data = new Uint8Array(e.target.result);
+                    let workbook = XLSX.read(data, {type: 'array'});
+                    
+                    let sheetName = workbook.SheetNames.includes('Sheet1') ? 'Sheet1' : workbook.SheetNames[0];
+                    let rawData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {defval: ""});
+
+                    if (rawData.length > 0 && rawData[0]['청구금액'] !== undefined) {
+                        billingDataList = rawData.map((row, idx) => {
+                            let no = String(row['회원번호'] || '').trim();
+                            let billAmt = parseInt(row['청구금액']) || 0;
+                            let month = String(row['청구월'] || '2026/10').replace('/', '-').trim();
+                            let typeStr = String(row['회원구분'] || '');
+
+                            let custItem = customerDataList.find(c => c.no === no);
+                            if (custItem) {
+                                if (billAmt > 0) custItem.amount = billAmt;
+                                if (typeStr === 'AI스캐너') {
+                                    let commMap = { 66000:0, 104500:0, 132000:27500, 165000:44000, 264000:55000, 286000:77000 };
+                                    if (commMap[billAmt] !== undefined) {
+                                        custItem.commission = commMap[billAmt];
+                                    }
+                                }
+                            }
+
+                            return {
+                                idx: idx + 1,
+                                no: no,
+                                name: String(row['회원명'] || ''),
+                                month: month,
+                                amount: billAmt,
+                                status: String(row['수납상태'] || '청구'),
+                                product: String(row['상품'] || ''),
+                                payMethod: String(row['결제수단'] || row['결제방식'] || 'CMS')
+                            };
+                        });
+
+                        renderBillingTable();
+                        filterCustomerTable();
+                        filterPaymentTable();
+                        renderDashboardCharts();
+                        syncToFirebase();
+                        alert(`총 ${billingDataList.length}건의 청구 내역이 등록되었습니다.`);
+                    } else {
+                        alert("청구목록 엑셀 포맷을 확인해 주세요.");
+                    }
+                } catch (err) {
+                    alert("청구 엑셀 업로드 실패: " + err);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            e.target.value = '';
+        });
+
+        document.getElementById('paymentFileInput').addEventListener('change', function(e) {
+            let file = e.target.files[0];
+            if (!file) return;
+
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    let data = new Uint8Array(e.target.result);
+                    let workbook = XLSX.read(data, {type: 'array'});
+                    let sheetName = workbook.SheetNames[0];
+                    let rawData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {defval: ""});
+
+                    let matchCount = 0;
+                    let batchRecords = [];
+                    let nowTimeStr = new Date().toLocaleString('ko-KR');
+
+                    rawData.forEach(row => {
+                        let no = String(row['회원번호'] || '').trim();
+                        let paidVal = parseInt(row['수납금액']) || 0;
+                        let settleDateVal = String(row['정산일'] || row['결제일'] || '').trim().split('T')[0];
+                        let billingMonth = String(row['청구월'] || '').replace('/', '-').trim();
+
+                        if (no) {
+                            if (!paymentDataMap[no]) paymentDataMap[no] = {};
+                            
+                            let monthKey = billingMonth || (settleDateVal ? settleDateVal.substring(0, 7) : `${currentModalYear}-10`);
+                            let existing = paymentDataMap[no][monthKey] || {};
+
+                            paymentDataMap[no][monthKey] = {
+                                amount: parseInt(row['공급가액']) || existing.amount || 0,
+                                commission: existing.commission || 0,
+                                paid: paidVal,
+                                paidDate: settleDateVal,
+                                settle: existing.settle || 0,
+                                settleDate: existing.settleDate || '',
+                                unpaid: parseInt(row['미납금액']) || 0
+                            };
+                            matchCount++;
+                            batchRecords.push({ no: no, monthKey: monthKey });
+                        }
+                    });
+
+                    uploadBatchList.unshift({
+                        time: nowTimeStr,
+                        fileName: file.name,
+                        count: matchCount,
+                        records: batchRecords
+                    });
+
+                    renderPaymentTable();
+                    renderDashboardCharts();
+                    syncToFirebase();
+                    alert(`총 ${matchCount}건의 수금 내역이 업로드 등록되었습니다.`);
+                } catch (err) {
+                    alert("수금 엑셀 업로드 실패: " + err);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            e.target.value = '';
+        });
+
         function renderCustomerTable(dataList) {
             let tbody = "";
             dataList.forEach((item, index) => {
@@ -2018,6 +2231,22 @@
             if (document.getElementById('selectAllBilling')) document.getElementById('selectAllBilling').checked = false;
         }
 
+        // 청구관리 선택 항목 삭제 기능 정상화
+        function deleteSelectedBillings() {
+            let selectedIdxs = Array.from(document.querySelectorAll('#billing-table-body .bill-check:checked')).map(cb => parseInt(cb.value));
+            if (selectedIdxs.length === 0) {
+                alert("삭제할 청구 항목을 선택해주세요.");
+                return;
+            }
+
+            if (!confirm(`선택한 ${selectedIdxs.length}건의 청구 데이터를 삭제하시겠습니까?`)) return;
+
+            billingDataList = billingDataList.filter(item => !selectedIdxs.includes(item.idx));
+            renderBillingTable();
+            syncToFirebase();
+            alert("선택한 청구 데이터가 성공적으로 삭제되었습니다.");
+        }
+
         function renderPaymentTableContent(dataList) {
             let tbody = "";
             let selectedYM = document.getElementById('paySelectMonth') ? document.getElementById('paySelectMonth').value : `${currentModalYear}-10`;
@@ -2105,6 +2334,50 @@
             closeModal('detailModal');
             syncToFirebase();
             alert("고객 정보 및 관련 이력이 삭제 후 휴지통으로 이동되었습니다.");
+        }
+
+        function deleteSelectedCustomers() {
+            let selectedIdxs = Array.from(document.querySelectorAll('#customer-table-body .cust-check:checked')).map(cb => parseInt(cb.value));
+            if (selectedIdxs.length === 0) {
+                alert("삭제할 고객을 선택해주세요.");
+                return;
+            }
+
+            if (!confirm(`선택한 ${selectedIdxs.length}명의 고객 정보를 삭제하시겠습니까?`)) return;
+
+            let nowStr = new Date().toLocaleString('ko-KR');
+            let userStr = currentUser ? (currentUser.name || currentUser.id) : 'Admin';
+
+            selectedIdxs.forEach(sIdx => {
+                let item = customerDataList.find(x => x.idx === sIdx);
+                if (item) {
+                    deletedCustomerTrashList.unshift({
+                        cust: item,
+                        payMap: paymentDataMap[item.no] || null,
+                        histList: contractHistoryMap[item.no] || null,
+                        docList: docDataMap[item.no] || null,
+                        counselList: counselDataMap[item.no] || null,
+                        deletedAt: nowStr,
+                        deletedBy: userStr
+                    });
+                    delete paymentDataMap[item.no];
+                    delete contractHistoryMap[item.no];
+                    delete docDataMap[item.no];
+                    delete counselDataMap[item.no];
+                }
+            });
+
+            customerDataList = customerDataList.filter(item => !selectedIdxs.includes(item.idx));
+            
+            updateSelectOptions();
+            updateTabBadges();
+            filterCustomerTable();
+            renderHistoryManagerTable();
+            renderTrashTable();
+            updateKPIs();
+            renderDashboardCharts();
+            syncToFirebase();
+            alert("선택한 고객 데이터가 삭제되었습니다.");
         }
 
         function restoreDeletedCustomer(trashIdx) {
