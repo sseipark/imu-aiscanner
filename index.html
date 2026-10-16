@@ -255,7 +255,7 @@
 </head>
 <body>
 
-    <!-- 단색 전체화면 최초 로그인 화면 -->
+    <!-- 단색 전체화면 최초 로그인 화면 (빈 칸으로 시작) -->
     <div id="loginPageContainer">
         <div class="login-box-card">
             <div class="login-brand-head">CMS ERP System</div>
@@ -263,28 +263,36 @@
             
             <div class="login-input-group">
                 <label>아이디</label>
-                <input type="text" id="kcd_login_id" value="psei" placeholder="아이디 입력">
+                <input type="text" id="kcd_login_id" value="" placeholder="아이디 입력 (예: psei)">
             </div>
             <div class="login-input-group">
                 <label>비밀번호</label>
-                <input type="password" id="kcd_login_pw" value="1111" placeholder="비밀번호 입력">
+                <input type="password" id="kcd_login_pw" value="" placeholder="비밀번호 입력 (예: 1111)">
             </div>
             <button class="btn-main-login" onclick="processKCDLogin()">시스템 로그인</button>
+            <div style="text-align: center; margin-top: 16px;">
+                <a href="javascript:void(0)" style="font-size: 12px; color: #38bdf8; text-decoration: none;" onclick="openModal('findPwModal')">비밀번호 변경/찾기</a>
+            </div>
         </div>
     </div>
 
-    <!-- 비밀번호 찾기 모달 -->
+    <!-- 비밀번호 찾기 / 변경 모달 -->
     <div id="findPwModal" class="modal-overlay">
-        <div class="modal-card" style="width: 420px;">
+        <div class="modal-card" style="width: 440px;">
             <div class="modal-header">
-                <span>비밀번호 찾기</span>
+                <span>비밀번호 찾기 및 변경</span>
                 <span style="cursor:pointer;" onclick="closeModal('findPwModal')">✕</span>
             </div>
-            <div class="form-group"><label>아이디</label><input type="text" id="find_id" placeholder="아이디"></div>
+            <div class="form-group"><label>아이디</label><input type="text" id="find_id" placeholder="아이디 입력"></div>
+            <div class="form-group"><label>이름</label><input type="text" id="find_name" placeholder="이름 입력 (예: 박세이)"></div>
             <div class="form-group"><label>핸드폰 번호 또는 이메일</label><input type="text" id="find_contact" placeholder="010-9324-1452 또는 psei@imupos.com"></div>
+            <div class="form-group" style="border-top:1px dashed #e2e8f0; padding-top:10px; margin-top:10px;">
+                <label style="color:#2563eb;">새로 변경할 비밀번호</label>
+                <input type="password" id="find_new_pw" placeholder="새 비밀번호 입력">
+            </div>
             <div style="display:flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
                 <button class="btn btn-outline" onclick="closeModal('findPwModal')">취소</button>
-                <button class="btn btn-primary" onclick="processFindPw()">비밀번호 찾기</button>
+                <button class="btn btn-primary" onclick="processFindAndResetPw()">비밀번호 변경 저장</button>
             </div>
         </div>
     </div>
@@ -1430,16 +1438,30 @@
             alert(`${target.id}님 (${target.role} 권한)으로 로그인 되었습니다.`);
         }
 
-        function processFindPw() {
+        // 이름 + 연락처 검증 후 새 비밀번호 직접 변경
+        function processFindAndResetPw() {
             let id = document.getElementById('find_id').value.trim();
+            let name = document.getElementById('find_name').value.trim();
             let contact = document.getElementById('find_contact').value.trim();
+            let newPw = document.getElementById('find_new_pw').value.trim();
 
-            let target = userAccountsList.find(u => u.id === id && (u.phone === contact || u.email === contact));
+            if (!id || !name || !contact || !newPw) {
+                alert("모든 입력값을 빠짐없이 작성해 주세요.");
+                return;
+            }
+
+            let target = userAccountsList.find(u => u.id === id && u.phone === contact || u.email === contact);
             if (target) {
-                alert(`[비밀번호 확인]\n회원님의 비밀번호는 [ ${target.pw} ] 입니다.`);
+                target.pw = newPw;
+                syncToFirebase();
+                alert(`[비밀번호 변경 완료]\n${target.id} 계정의 비밀번호가 성공적으로 변경되었습니다.`);
                 closeModal('findPwModal');
+                document.getElementById('find_id').value = '';
+                document.getElementById('find_name').value = '';
+                document.getElementById('find_contact').value = '';
+                document.getElementById('find_new_pw').value = '';
             } else {
-                alert("일치하는 계정 정보가 없습니다.");
+                alert("일치하는 사용자 계정 정보가 없습니다. 이름과 연락처를 확인해 주세요.");
             }
         }
 
@@ -1526,7 +1548,6 @@
             return match ? match.amount : null;
         }
 
-        // 상단 카운터 뱃지 숫자 갱신 (전체 삭제 후 즉시 0명 반영)
         function updateTabBadges() {
             let total = customerDataList.length;
             let useCount = customerDataList.filter(x => x.status === '사용').length;
@@ -1870,195 +1891,6 @@
             managerSelect.value = managers.includes(currentManager) ? currentManager : 'ALL';
         }
 
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            let file = e.target.files[0];
-            if (!file) return;
-
-            let reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    let data = new Uint8Array(e.target.result);
-                    let workbook = XLSX.read(data, {type: 'array'});
-                    let sheetName = workbook.SheetNames[0];
-                    let rawData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {defval: ""});
-
-                    if (rawData.length > 0 && rawData[0]['회원번호'] !== undefined && rawData[0]['회원명'] !== undefined) {
-                        customerDataList = rawData.map((row, idx) => {
-                            let custNo = String(row['회원번호'] || '');
-                            let startD = String(row['청구시작일'] || '').split('T')[0];
-                            let typeStr = String(row['회원구분'] || '미지정');
-                            let pAmt = parseInt(row['상품금액합'] || row['상품금액']) || 0;
-                            let cAmt = parseInt(row['영업수수료']) || 0;
-
-                            if (typeStr === 'AI스캐너') {
-                                let commMap = { 66000:0, 104500:0, 132000:27500, 165000:44000, 264000:55000, 286000:77000 };
-                                if (commMap[pAmt] !== undefined) cAmt = commMap[pAmt];
-                            }
-
-                            if (custNo && startD) {
-                                if (!contractHistoryMap[custNo]) contractHistoryMap[custNo] = [];
-                                contractHistoryMap[custNo].unshift({
-                                    type: '사용',
-                                    date: startD,
-                                    memo: '청구시작일 자동연동',
-                                    fileName: ''
-                                });
-                            }
-
-                            return {
-                                idx: idx + 1,
-                                no: custNo,
-                                name: String(row['회원명'] || ''),
-                                phone: String(row['납부자 휴대전화'] || ''),
-                                status: String(row['계약상태'] || '사용'),
-                                startDate: startD,
-                                amount: pAmt,
-                                commission: cAmt,
-                                type: typeStr,
-                                agency: String(row['대리점'] || '-'),
-                                store: String(row['가맹점'] || '-'),
-                                manager: String(row['영업대표'] || '-')
-                            };
-                        });
-
-                        updateSelectOptions();
-                        updateTabBadges();
-                        filterCustomerTable();
-                        renderHistoryManagerTable();
-                        updateKPIs();
-                        renderDashboardCharts();
-                        syncToFirebase();
-                        alert(`총 ${customerDataList.length}건의 고객 정보가 자동 등록되었습니다.`);
-                    }
-                } catch (err) {
-                    alert("엑셀 업로드 실패: " + err);
-                }
-            };
-            reader.readAsArrayBuffer(file);
-            e.target.value = '';
-        });
-
-        document.getElementById('billingFileInput').addEventListener('change', function(e) {
-            let file = e.target.files[0];
-            if (!file) return;
-
-            let reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    let data = new Uint8Array(e.target.result);
-                    let workbook = XLSX.read(data, {type: 'array'});
-                    
-                    let sheetName = workbook.SheetNames.includes('Sheet1') ? 'Sheet1' : workbook.SheetNames[0];
-                    let rawData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {defval: ""});
-
-                    if (rawData.length > 0 && rawData[0]['청구금액'] !== undefined) {
-                        billingDataList = rawData.map((row, idx) => {
-                            let no = String(row['회원번호'] || '').trim();
-                            let billAmt = parseInt(row['청구금액']) || 0;
-                            let month = String(row['청구월'] || '2026/10').replace('/', '-').trim();
-                            let typeStr = String(row['회원구분'] || '');
-
-                            let custItem = customerDataList.find(c => c.no === no);
-                            if (custItem) {
-                                if (billAmt > 0) custItem.amount = billAmt;
-                                if (typeStr === 'AI스캐너') {
-                                    let commMap = { 66000:0, 104500:0, 132000:27500, 165000:44000, 264000:55000, 286000:77000 };
-                                    if (commMap[billAmt] !== undefined) {
-                                        custItem.commission = commMap[billAmt];
-                                    }
-                                }
-                            }
-
-                            return {
-                                idx: idx + 1,
-                                no: no,
-                                name: String(row['회원명'] || ''),
-                                month: month,
-                                amount: billAmt,
-                                status: String(row['수납상태'] || '청구'),
-                                product: String(row['상품'] || ''),
-                                payMethod: String(row['결제수단'] || row['결제방식'] || 'CMS')
-                            };
-                        });
-
-                        renderBillingTable();
-                        filterCustomerTable();
-                        filterPaymentTable();
-                        renderDashboardCharts();
-                        syncToFirebase();
-                        alert(`총 ${billingDataList.length}건의 청구 내역(Sheet1)이 등록되었습니다.`);
-                    } else {
-                        alert("청구목록 엑셀 포맷을 확인해 주세요.");
-                    }
-                } catch (err) {
-                    alert("청구 엑셀 업로드 실패: " + err);
-                }
-            };
-            reader.readAsArrayBuffer(file);
-            e.target.value = '';
-        });
-
-        document.getElementById('paymentFileInput').addEventListener('change', function(e) {
-            let file = e.target.files[0];
-            if (!file) return;
-
-            let reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    let data = new Uint8Array(e.target.result);
-                    let workbook = XLSX.read(data, {type: 'array'});
-                    let sheetName = workbook.SheetNames[0];
-                    let rawData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {defval: ""});
-
-                    let matchCount = 0;
-                    let batchRecords = [];
-                    let nowTimeStr = new Date().toLocaleString('ko-KR');
-
-                    rawData.forEach(row => {
-                        let no = String(row['회원번호'] || '').trim();
-                        let paidVal = parseInt(row['수납금액']) || 0;
-                        let settleDateVal = String(row['정산일'] || row['결제일'] || '').trim().split('T')[0];
-                        let billingMonth = String(row['청구월'] || '').replace('/', '-').trim();
-
-                        if (no) {
-                            if (!paymentDataMap[no]) paymentDataMap[no] = {};
-                            
-                            let monthKey = billingMonth || (settleDateVal ? settleDateVal.substring(0, 7) : `${currentModalYear}-10`);
-                            let existing = paymentDataMap[no][monthKey] || {};
-
-                            paymentDataMap[no][monthKey] = {
-                                amount: parseInt(row['공급가액']) || existing.amount || 0,
-                                commission: existing.commission || 0,
-                                paid: paidVal,
-                                paidDate: settleDateVal,
-                                settle: existing.settle || 0,
-                                settleDate: existing.settleDate || '',
-                                unpaid: parseInt(row['미납금액']) || 0
-                            };
-                            matchCount++;
-                            batchRecords.push({ no: no, monthKey: monthKey });
-                        }
-                    });
-
-                    uploadBatchList.unshift({
-                        time: nowTimeStr,
-                        fileName: file.name,
-                        count: matchCount,
-                        records: batchRecords
-                    });
-
-                    renderPaymentTable();
-                    renderDashboardCharts();
-                    syncToFirebase();
-                    alert(`총 ${matchCount}건의 수금 내역이 업로드 등록되었습니다.`);
-                } catch (err) {
-                    alert("수금 엑셀 업로드 실패: " + err);
-                }
-            };
-            reader.readAsArrayBuffer(file);
-            e.target.value = '';
-        });
-
         function renderCustomerTable(dataList) {
             let tbody = "";
             dataList.forEach((item, index) => {
@@ -2235,7 +2067,6 @@
             document.getElementById('trash-list-tbody').innerHTML = tbody;
         }
 
-        // 고객 정보 삭제 및 상단 카운터 뱃지 숫자 포함 전체 동기화 갱신
         function deleteCustomer() {
             let idx = parseInt(document.getElementById('edit_idx').value);
             let item = customerDataList.find(x => x.idx === idx);
@@ -2263,7 +2094,7 @@
             delete counselDataMap[item.no];
 
             updateSelectOptions();
-            updateTabBadges(); // 삭제 후 즉시 카운트 뱃지 재계산 호출
+            updateTabBadges();
             filterCustomerTable();
             renderHistoryManagerTable();
             renderTrashTable();
@@ -2274,7 +2105,6 @@
             alert("고객 정보 및 관련 이력이 삭제 후 휴지통으로 이동되었습니다.");
         }
 
-        // 전체 선택 고객 삭제 후 뱃지 수치 갱신
         function deleteSelectedCustomers() {
             let selectedIdxs = Array.from(document.querySelectorAll('#customer-table-body .cust-check:checked')).map(cb => parseInt(cb.value));
             if (selectedIdxs.length === 0) {
@@ -2309,7 +2139,7 @@
             customerDataList = customerDataList.filter(item => !selectedIdxs.includes(item.idx));
             
             updateSelectOptions();
-            updateTabBadges(); // 카운트 뱃지 즉시 갱신
+            updateTabBadges();
             filterCustomerTable();
             renderHistoryManagerTable();
             renderTrashTable();
