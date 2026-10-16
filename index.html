@@ -733,7 +733,6 @@
                 </div>
 
                 <div style="display:flex; align-items:center; gap:8px;">
-                    <!-- 단독 이름 표기로 변경된 뱃지 영역 -->
                     <span id="userStatusBadge" style="font-size:12px; font-weight:700; color:#2563eb; background:#eff6ff; padding:4px 8px; border-radius:4px;">미로그인</span>
                     <button class="btn btn-outline" style="font-size:12px; padding:6px 10px;" id="loginLogoutBtn" onclick="handleAuthBtnClick()">로그인</button>
                 </div>
@@ -1352,7 +1351,6 @@
             visibleCheckboxes.forEach(cb => cb.checked = master.checked);
         }
 
-        // 뱃지 영역 이름 단독 표출
         function updateAuthUI() {
             let badge = document.getElementById('userStatusBadge');
             let btn = document.getElementById('loginLogoutBtn');
@@ -1369,7 +1367,7 @@
                 adminSubBlock.style.display = 'none';
             } else {
                 let displayName = currentUser.name || currentUser.id;
-                badge.innerText = `${displayName}`; // '접속자:' 및 '(관리자)' 완전히 지우고 이름만 단독 표기
+                badge.innerText = `${displayName}`;
                 btn.innerText = "로그아웃";
                 kcdLoginPage.style.display = 'none';
 
@@ -2109,50 +2107,6 @@
             alert("고객 정보 및 관련 이력이 삭제 후 휴지통으로 이동되었습니다.");
         }
 
-        function deleteSelectedCustomers() {
-            let selectedIdxs = Array.from(document.querySelectorAll('#customer-table-body .cust-check:checked')).map(cb => parseInt(cb.value));
-            if (selectedIdxs.length === 0) {
-                alert("삭제할 고객을 선택해주세요.");
-                return;
-            }
-
-            if (!confirm(`선택한 ${selectedIdxs.length}명의 고객 정보를 삭제하시겠습니까?`)) return;
-
-            let nowStr = new Date().toLocaleString('ko-KR');
-            let userStr = currentUser ? (currentUser.name || currentUser.id) : 'Admin';
-
-            selectedIdxs.forEach(sIdx => {
-                let item = customerDataList.find(x => x.idx === sIdx);
-                if (item) {
-                    deletedCustomerTrashList.unshift({
-                        cust: item,
-                        payMap: paymentDataMap[item.no] || null,
-                        histList: contractHistoryMap[item.no] || null,
-                        docList: docDataMap[item.no] || null,
-                        counselList: counselDataMap[item.no] || null,
-                        deletedAt: nowStr,
-                        deletedBy: userStr
-                    });
-                    delete paymentDataMap[item.no];
-                    delete contractHistoryMap[item.no];
-                    delete docDataMap[item.no];
-                    delete counselDataMap[item.no];
-                }
-            });
-
-            customerDataList = customerDataList.filter(item => !selectedIdxs.includes(item.idx));
-            
-            updateSelectOptions();
-            updateTabBadges();
-            filterCustomerTable();
-            renderHistoryManagerTable();
-            renderTrashTable();
-            updateKPIs();
-            renderDashboardCharts();
-            syncToFirebase();
-            alert("선택한 고객 데이터가 삭제되었습니다.");
-        }
-
         function restoreDeletedCustomer(trashIdx) {
             let trashItem = deletedCustomerTrashList[trashIdx];
             if (!trashItem) return;
@@ -2178,7 +2132,6 @@
             alert("고객 정보와 관련 이력이 성공적으로 원상 복구되었습니다.");
         }
 
-        // 이름 컬럼 추가 및 정보 수정 기능 구현
         function renderAdminUsersTable() {
             let tbody = "";
             userAccountsList.forEach((u, idx) => {
