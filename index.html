@@ -255,7 +255,7 @@
 </head>
 <body>
 
-    <!-- 단색 전체화면 최초 로그인 화면 (예시 텍스트 완전 제거) -->
+    <!-- 단색 전체화면 최초 로그인 화면 -->
     <div id="loginPageContainer">
         <div class="login-box-card">
             <div class="login-brand-head">CMS ERP System</div>
@@ -733,7 +733,8 @@
                 </div>
 
                 <div style="display:flex; align-items:center; gap:8px;">
-                    <span id="userStatusBadge" style="font-size:12px; font-weight:700; color:#2563eb; background:#eff6ff; padding:4px 8px; border-radius:4px;">접속자: 미로그인</span>
+                    <!-- 단독 이름 표기로 변경된 뱃지 영역 -->
+                    <span id="userStatusBadge" style="font-size:12px; font-weight:700; color:#2563eb; background:#eff6ff; padding:4px 8px; border-radius:4px;">미로그인</span>
                     <button class="btn btn-outline" style="font-size:12px; padding:6px 10px;" id="loginLogoutBtn" onclick="handleAuthBtnClick()">로그인</button>
                 </div>
 
@@ -1131,10 +1132,11 @@
                                     <th>아이디</th>
                                     <th>비밀번호</th>
                                     <th>권한 구획</th>
+                                    <th>이름</th>
                                     <th>핸드폰 번호</th>
                                     <th>이메일 주소</th>
                                     <th class="text-center">계정 상태</th>
-                                    <th class="text-center">관리 (권한 변경/초기화/블락)</th>
+                                    <th class="text-center">관리 (정보수정/초기화/블락)</th>
                                 </tr>
                             </thead>
                             <tbody id="admin-users-tbody"></tbody>
@@ -1175,6 +1177,7 @@
             <input type="hidden" id="u_edit_mode" value="ADD" />
             <div class="form-group"><label>아이디</label><input type="text" id="u_id" placeholder="아이디 입력"></div>
             <div class="form-group"><label>비밀번호</label><input type="password" id="u_pw" placeholder="비밀번호 입력"></div>
+            <div class="form-group"><label>이름</label><input type="text" id="u_name" placeholder="이름 입력 (예: 박세이)"></div>
             <div class="form-group">
                 <label>권한 선택</label>
                 <select id="u_role">
@@ -1219,8 +1222,8 @@
         let deletedCustomerTrashList = []; 
 
         let userAccountsList = [
-            { id: "admin", pw: "1234", role: "관리자", phone: "010-0000-0000", email: "admin@imupos.com", isBlocked: false },
-            { id: "psei", pw: "1111", role: "관리자", phone: "010-9324-1452", email: "psei@imupos.com", isBlocked: false }
+            { id: "admin", pw: "1234", name: "최고관리자", role: "관리자", phone: "010-0000-0000", email: "admin@imupos.com", isBlocked: false },
+            { id: "psei", pw: "1111", name: "박세이", role: "관리자", phone: "010-9324-1452", email: "psei@imupos.com", isBlocked: false }
         ];
 
         let currentUser = null; 
@@ -1349,6 +1352,7 @@
             visibleCheckboxes.forEach(cb => cb.checked = master.checked);
         }
 
+        // 뱃지 영역 이름 단독 표출
         function updateAuthUI() {
             let badge = document.getElementById('userStatusBadge');
             let btn = document.getElementById('loginLogoutBtn');
@@ -1357,14 +1361,15 @@
             let kcdLoginPage = document.getElementById('loginPageContainer');
 
             if (!currentUser) {
-                badge.innerText = "접속자: 미로그인";
+                badge.innerText = "미로그인";
                 btn.innerText = "로그인";
                 kcdLoginPage.style.display = 'flex';
                 document.body.classList.add('readonly-mode');
                 adminBlock.style.display = 'none';
                 adminSubBlock.style.display = 'none';
             } else {
-                badge.innerText = `접속자: ${currentUser.id} (${currentUser.role})`;
+                let displayName = currentUser.name || currentUser.id;
+                badge.innerText = `${displayName}`; // '접속자:' 및 '(관리자)' 완전히 지우고 이름만 단독 표기
                 btn.innerText = "로그아웃";
                 kcdLoginPage.style.display = 'none';
 
@@ -1400,9 +1405,9 @@
                 return;
             }
 
-            currentUser = { id: target.id, role: target.role };
+            currentUser = { id: target.id, name: target.name, role: target.role };
             updateAuthUI();
-            alert(`${target.id}님 (${target.role} 권한)으로 로그인 되었습니다.`);
+            alert(`${target.name || target.id}님 로그인 되었습니다.`);
         }
 
         function handleAuthBtnClick() {
@@ -1430,12 +1435,12 @@
                 return;
             }
 
-            currentUser = { id: target.id, role: target.role };
+            currentUser = { id: target.id, name: target.name, role: target.role };
             updateAuthUI();
             closeModal('loginModal');
             document.getElementById('login_id').value = '';
             document.getElementById('login_pw').value = '';
-            alert(`${target.id}님 (${target.role} 권한)으로 로그인 되었습니다.`);
+            alert(`${target.name || target.id}님 로그인 되었습니다.`);
         }
 
         function processFindAndResetPw() {
@@ -1449,11 +1454,11 @@
                 return;
             }
 
-            let target = userAccountsList.find(u => u.id === id && (u.phone === contact || u.email === contact));
+            let target = userAccountsList.find(u => u.id === id && u.name === name && (u.phone === contact || u.email === contact));
             if (target) {
                 target.pw = newPw;
                 syncToFirebase();
-                alert(`[비밀번호 변경 완료]\n${target.id} 계정의 비밀번호가 성공적으로 변경되었습니다.`);
+                alert(`[비밀번호 변경 완료]\n${target.name || target.id} 계정의 비밀번호가 성공적으로 변경되었습니다.`);
                 closeModal('findPwModal');
                 document.getElementById('find_id').value = '';
                 document.getElementById('find_name').value = '';
@@ -1466,7 +1471,7 @@
 
         function logEditRecord(type, custNo, logText) {
             let nowStr = new Date().toLocaleString('ko-KR');
-            let userStr = currentUser ? currentUser.id : 'Unknown';
+            let userStr = currentUser ? (currentUser.name || currentUser.id) : 'Unknown';
             let entry = `[${nowStr}] <span class="log-user">${userStr}</span>: ${logText}`;
 
             if (type === 'CUST') {
@@ -2074,7 +2079,7 @@
             if (!confirm(`정말로 [${item.name}] 고객 정보를 삭제하시겠습니까?\n삭제된 이력은 관리자맵 휴지통에서 언제든 복구할 수 있습니다.`)) return;
 
             let nowStr = new Date().toLocaleString('ko-KR');
-            let userStr = currentUser ? currentUser.id : 'Admin';
+            let userStr = currentUser ? (currentUser.name || currentUser.id) : 'Admin';
 
             deletedCustomerTrashList.unshift({
                 cust: item,
@@ -2104,6 +2109,50 @@
             alert("고객 정보 및 관련 이력이 삭제 후 휴지통으로 이동되었습니다.");
         }
 
+        function deleteSelectedCustomers() {
+            let selectedIdxs = Array.from(document.querySelectorAll('#customer-table-body .cust-check:checked')).map(cb => parseInt(cb.value));
+            if (selectedIdxs.length === 0) {
+                alert("삭제할 고객을 선택해주세요.");
+                return;
+            }
+
+            if (!confirm(`선택한 ${selectedIdxs.length}명의 고객 정보를 삭제하시겠습니까?`)) return;
+
+            let nowStr = new Date().toLocaleString('ko-KR');
+            let userStr = currentUser ? (currentUser.name || currentUser.id) : 'Admin';
+
+            selectedIdxs.forEach(sIdx => {
+                let item = customerDataList.find(x => x.idx === sIdx);
+                if (item) {
+                    deletedCustomerTrashList.unshift({
+                        cust: item,
+                        payMap: paymentDataMap[item.no] || null,
+                        histList: contractHistoryMap[item.no] || null,
+                        docList: docDataMap[item.no] || null,
+                        counselList: counselDataMap[item.no] || null,
+                        deletedAt: nowStr,
+                        deletedBy: userStr
+                    });
+                    delete paymentDataMap[item.no];
+                    delete contractHistoryMap[item.no];
+                    delete docDataMap[item.no];
+                    delete counselDataMap[item.no];
+                }
+            });
+
+            customerDataList = customerDataList.filter(item => !selectedIdxs.includes(item.idx));
+            
+            updateSelectOptions();
+            updateTabBadges();
+            filterCustomerTable();
+            renderHistoryManagerTable();
+            renderTrashTable();
+            updateKPIs();
+            renderDashboardCharts();
+            syncToFirebase();
+            alert("선택한 고객 데이터가 삭제되었습니다.");
+        }
+
         function restoreDeletedCustomer(trashIdx) {
             let trashItem = deletedCustomerTrashList[trashIdx];
             if (!trashItem) return;
@@ -2129,6 +2178,7 @@
             alert("고객 정보와 관련 이력이 성공적으로 원상 복구되었습니다.");
         }
 
+        // 이름 컬럼 추가 및 정보 수정 기능 구현
         function renderAdminUsersTable() {
             let tbody = "";
             userAccountsList.forEach((u, idx) => {
@@ -2141,16 +2191,18 @@
                     <td style="font-weight:700;">${u.id}</td>
                     <td>••••••</td>
                     <td>
-                        <select class="table-input-inline" id="u_role_${idx}" onchange="changeUserRole(${idx})">
+                        <select class="table-input-inline" id="u_role_${idx}">
                             <option value="관리자" ${u.role === '관리자' ? 'selected' : ''}>관리자</option>
                             <option value="편집자" ${u.role === '편집자' ? 'selected' : ''}>편집자</option>
                             <option value="보기전용" ${u.role === '보기전용' ? 'selected' : ''}>보기전용</option>
                         </select>
                     </td>
-                    <td>${u.phone || '-'}</td>
-                    <td>${u.email || '-'}</td>
+                    <td><input type="text" class="table-input-inline" id="u_name_${idx}" value="${u.name || u.id}" style="width:100px;" /></td>
+                    <td><input type="text" class="table-input-inline" id="u_phone_${idx}" value="${u.phone || ''}" style="width:120px;" /></td>
+                    <td><input type="text" class="table-input-inline" id="u_email_${idx}" value="${u.email || ''}" style="width:150px;" /></td>
                     <td class="text-center">${statusBadge}</td>
                     <td class="text-center">
+                        <button class="btn-action" style="font-size:11px;" onclick="updateAdminUserInfo(${idx})">수정 저장</button>
                         <button class="btn-action" style="font-size:11px;" onclick="resetUserPwToDefault(${idx})">비밀번호 초기화(1111)</button>
                         <button class="btn-action" style="font-size:11px;" onclick="toggleUserBlock(${idx})">${u.isBlocked ? '차단해제' : '계정차단'}</button>
                         <button class="btn-danger" style="font-size:11px; padding:3px 6px;" onclick="deleteUserAccount(${idx})">삭제</button>
@@ -2160,15 +2212,33 @@
             document.getElementById('admin-users-tbody').innerHTML = tbody;
         }
 
-        // 관리자가 해당 사용자의 비밀번호를 '1111'로 즉시 초기화하는 기능
+        function updateAdminUserInfo(idx) {
+            let target = userAccountsList[idx];
+            if (!target) return;
+
+            let newRole = document.getElementById(`u_role_${idx}`).value;
+            let newName = document.getElementById(`u_name_${idx}`).value.trim();
+            let newPhone = document.getElementById(`u_phone_${idx}`).value.trim();
+            let newEmail = document.getElementById(`u_email_${idx}`).value.trim();
+
+            target.role = newRole;
+            target.name = newName;
+            target.phone = newPhone;
+            target.email = newEmail;
+
+            syncToFirebase();
+            updateAuthUI();
+            alert(`[${target.id}] 사용자 계정 정보가 성공적으로 수정되었습니다.`);
+        }
+
         function resetUserPwToDefault(idx) {
             let targetUser = userAccountsList[idx];
             if (!targetUser) return;
 
-            if (confirm(`[${targetUser.id}] 사용자의 비밀번호를 '1111'로 초기화하시겠습니까?`)) {
+            if (confirm(`[${targetUser.name || targetUser.id}] 사용자의 비밀번호를 '1111'로 초기화하시겠습니까?`)) {
                 userAccountsList[idx].pw = "1111";
                 syncToFirebase();
-                alert(`[${targetUser.id}] 계정의 비밀번호가 '1111'로 초기화되었습니다.`);
+                alert(`[${targetUser.name || targetUser.id}] 계정의 비밀번호가 '1111'로 초기화되었습니다.`);
             }
         }
 
@@ -2177,6 +2247,7 @@
             document.getElementById('u_edit_mode').value = "ADD";
             document.getElementById('u_id').value = "";
             document.getElementById('u_pw').value = "";
+            document.getElementById('u_name').value = "";
             document.getElementById('u_phone').value = "";
             document.getElementById('u_email').value = "";
             openModal('userAdminModal');
@@ -2185,6 +2256,7 @@
         function saveUserAccount() {
             let id = document.getElementById('u_id').value.trim();
             let pw = document.getElementById('u_pw').value.trim();
+            let name = document.getElementById('u_name').value.trim() || id;
             let role = document.getElementById('u_role').value;
             let phone = document.getElementById('u_phone').value.trim();
             let email = document.getElementById('u_email').value.trim();
@@ -2197,6 +2269,7 @@
             userAccountsList.push({
                 id: id,
                 pw: pw,
+                name: name,
                 role: role,
                 phone: phone,
                 email: email,
@@ -2209,18 +2282,11 @@
             alert("신규 사용자 계정이 등록되었습니다.");
         }
 
-        function changeUserRole(idx) {
-            let newRole = document.getElementById(`u_role_${idx}`).value;
-            userAccountsList[idx].role = newRole;
-            syncToFirebase();
-            alert(`${userAccountsList[idx].id} 계정의 권한이 [${newRole}]로 변경되었습니다.`);
-        }
-
         function toggleUserBlock(idx) {
             userAccountsList[idx].isBlocked = !userAccountsList[idx].isBlocked;
             renderAdminUsersTable();
             syncToFirebase();
-            alert(`${userAccountsList[idx].id} 계정이 ${userAccountsList[idx].isBlocked ? '차단' : '차단 해제'}되었습니다.`);
+            alert(`${userAccountsList[idx].name || userAccountsList[idx].id} 계정이 ${userAccountsList[idx].isBlocked ? '차단' : '차단 해제'}되었습니다.`);
         }
 
         function deleteUserAccount(idx) {
